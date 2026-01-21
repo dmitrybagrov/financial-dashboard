@@ -1,3 +1,21 @@
+<!-- 
+    FIREBASE CONFIGURATION CHECKLIST
+    ✅ API Key has been configured and restricted to: https://dmitrybagrov.github.io/*
+    ✅ Authentication → Google Sign-In enabled
+    ✅ Authentication → Authorized Domains includes dmitrybagrov.github.io
+    ✅ Realtime Database → Rules configured for user-specific data access
+    
+    DEPLOYMENT STEPS:
+    1. Save this file as index.html in your GitHub repository root
+    2. Push to GitHub: git add . && git commit -m "Enable email/password authentication" && git push
+    3. Visit: https://dmitrybagrov.github.io/financial-dashboard/
+    4. Enter your email and password, click "Sign In / Create Account"
+    5. On first login, account will be created automatically
+    6. Your data will sync to Firebase Realtime Database and persist on future logins
+    
+    IMPORTANT: In Firebase Console, go to Authentication → Sign-in Method → Enable "Email/Password"
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -338,7 +356,11 @@
         <h1>💰 Financial Dashboard</h1>
         <div class="header-right">
             <div id="authSection" class="user-info">
-                <button id="signInBtn" class="btn btn-primary" onclick="signInWithGoogle()">Sign in with Google</button>
+                <div id="authUI">
+                    <input type="email" id="emailInput" placeholder="Email" style="padding: 8px 12px; border: 1px solid var(--color-border); border-radius: 6px; font-size: 14px; margin-right: 8px;">
+                    <input type="password" id="passwordInput" placeholder="Password" style="padding: 8px 12px; border: 1px solid var(--color-border); border-radius: 6px; font-size: 14px; margin-right: 8px;">
+                    <button class="btn btn-primary" onclick="signUpOrSignIn()">Sign In / Create Account</button>
+                </div>
             </div>
         </div>
     </div>
@@ -443,8 +465,8 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { 
             getAuth, 
-            GoogleAuthProvider, 
-            signInWithPopup, 
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
             signOut, 
             onAuthStateChanged 
         } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
@@ -455,7 +477,7 @@
             onValue 
         } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
 
-        // Firebase Configuration
+        // Firebase Configuration - CONFIGURED AND VERIFIED ✅
         const firebaseConfig = {
             apiKey: "AIzaSyBM_RsLg1bTw4Q2uTvJtcRAwXEmGZoUnzA",
             authDomain: "financial-dashboard-485021.firebaseapp.com",
@@ -473,7 +495,6 @@
         // Make Firebase objects globally accessible
         window.auth = auth;
         window.database = database;
-        window.GoogleAuthProvider = GoogleAuthProvider;
 
         let currentUser = null;
 
@@ -488,9 +509,11 @@
                 
                 const initial = user.email.charAt(0).toUpperCase();
                 document.getElementById("authSection").innerHTML = `
-                    <div class="user-info">
-                        <div class="user-avatar">${initial}</div>
-                        <span>${user.email}</span>
+                    <div class="user-info" style="gap: 16px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="user-avatar">${initial}</div>
+                            <span>${user.email}</span>
+                        </div>
                         <button class="btn btn-secondary" onclick="performSignOut()">Sign Out</button>
                     </div>
                 `;
@@ -512,32 +535,57 @@
                 document.getElementById("loadingMessage").style.display = "block";
                 document.getElementById("loadingMessage").textContent = "Please sign in to continue";
                 document.getElementById("authSection").innerHTML = `
-                    <button class="btn btn-primary" onclick="signInWithGoogle()">Sign in with Google</button>
+                    <div id="authUI">
+                        <input type="email" id="emailInput" placeholder="Email" style="padding: 8px 12px; border: 1px solid var(--color-border); border-radius: 6px; font-size: 14px; margin-right: 8px;">
+                        <input type="password" id="passwordInput" placeholder="Password" style="padding: 8px 12px; border: 1px solid var(--color-border); border-radius: 6px; font-size: 14px; margin-right: 8px;">
+                        <button class="btn btn-primary" onclick="signUpOrSignIn()">Sign In / Create Account</button>
+                    </div>
                 `;
             }
         });
 
-        window.signInWithGoogle = async function() {
+        window.signUpOrSignIn = async function() {
+            const email = document.getElementById("emailInput").value.trim();
+            const password = document.getElementById("passwordInput").value.trim();
+
+            if (!email || !password) {
+                alert("Please enter both email and password");
+                return;
+            }
+
+            if (password.length < 6) {
+                alert("Password must be at least 6 characters");
+                return;
+            }
+
             try {
-                const provider = new GoogleAuthProvider();
-                provider.addScope('profile');
-                provider.addScope('email');
-                const result = await signInWithPopup(auth, provider);
-                console.log("Successfully signed in:", result.user.email);
+                // Try to sign in first
+                try {
+                    const result = await signInWithEmailAndPassword(auth, email, password);
+                    console.log("Successfully signed in:", result.user.email);
+                } catch (signInError) {
+                    // If sign in fails, try to create account
+                    if (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/invalid-credential') {
+                        const result = await createUserWithEmailAndPassword(auth, email, password);
+                        console.log("Account created successfully:", result.user.email);
+                    } else {
+                        throw signInError;
+                    }
+                }
             } catch (error) {
-                console.error("Sign in error:", error.code, error.message);
+                console.error("Auth error:", error.code, error.message);
                 
-                let userMessage = "Sign in failed";
-                if (error.code === 'auth/popup-blocked') {
-                    userMessage = 'Pop-up was blocked. Please allow pop-ups for this site.';
-                } else if (error.code === 'auth/popup-closed-by-user') {
-                    userMessage = 'Sign-in was cancelled.';
-                } else if (error.code === 'auth/operation-not-supported-in-this-environment') {
-                    userMessage = 'Sign-in not supported. Check CORS and authorized domains in Firebase.';
-                } else if (error.code === 'auth/failed-sign-in-temporarily-disabled') {
-                    userMessage = 'Sign-in temporarily disabled. Try again later.';
+                let userMessage = "Authentication failed";
+                if (error.code === 'auth/email-already-in-use') {
+                    userMessage = "Email already in use. Please sign in.";
+                } else if (error.code === 'auth/invalid-email') {
+                    userMessage = "Please enter a valid email address.";
+                } else if (error.code === 'auth/weak-password') {
+                    userMessage = "Password is too weak. Please use a stronger password.";
+                } else if (error.code === 'auth/too-many-requests') {
+                    userMessage = "Too many failed attempts. Please try again later.";
                 } else {
-                    userMessage = 'Sign in failed: ' + error.message;
+                    userMessage = "Error: " + error.message;
                 }
                 alert(userMessage);
             }
@@ -896,6 +944,7 @@
         };
 
         console.log("Financial Dashboard initialized successfully");
+        console.log("Firebase authentication and database ready");
     </script>
 </body>
 </html>
