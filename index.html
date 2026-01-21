@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#208080">
+    <meta name="description" content="Track your savings, mortgages, and net worth">
+    <link rel="manifest" href="data:application/json,{%22name%22:%22Financial Dashboard%22,%22short_name%22:%22FinDash%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%23208080%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23208080' width='192' height='192'/><text x='50%' y='50%' font-size='120' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>💰</text></svg>%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22,%22purpose%22:%22any%22}]}">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23208080' width='100' height='100'/><text x='50' y='70' font-size='80' text-anchor='middle'>💰</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23208080' width='180' height='180'/><text x='90' y='130' font-size='120' text-anchor='middle'>💰</text></svg>">
+    <title>Financial Dashboard - Savings & Mortgages</title>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#208080">
+    <meta name="description" content="Track your savings, mortgages, and net worth">
+    <link rel="manifest" href="data:application/json,{%22name%22:%22Financial Dashboard%22,%22short_name%22:%22FinDash%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%23208080%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23208080' width='192' height='192'/><text x='50%' y='50%' font-size='120' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>💰</text></svg>%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22,%22purpose%22:%22any%22}]}">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23208080' width='100' height='100'/><text x='50' y='70' font-size='80' text-anchor='middle'>💰</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23208080' width='180' height='180'/><text x='90' y='130' font-size='120' text-anchor='middle'>💰</text></svg>">
+    <title>Financial Dashboard - Savings & Mortgages</title>
+    <style>
+        :root {
+            --color-primary: #208080;
+            --color-primary-hover: #1a6b6b;
+            --color-bg: #f5f5f5;
+            --color-surface: #ffffff;
+            --color-text: #1a1a1a;
+            --color-text-secondary: #666;
+            --color-border: #ddd;
+            --color-success: #218055;
+            --color-warning: #a84d2f;
+            --color-error: #c0152f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--color-surface);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            font-size: 14px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: var(--color-surface);
+            padding: 10px;
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #f0f0f0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            background: var(--color-surface);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--color-primary);
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--color-text-secondary);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--color-bg);
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            background: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--color-primary);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-card {
+            background: var(--color-bg);
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .summary-card.success {
+            border-left-color: var(--color-success);
+        }
+
+        .summary-card.warning {
+            border-left-color: var(--color-warning);
+        }
+
+        .card-label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .card-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .currency {
+            color: var(--color-primary);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background: var(--color-border);
+            color: var(--color-text);
+        }
+
+        .btn-secondary:hover {
+            background: #ccc;
+        }
+
+        .btn-danger {
+            background: var(--color-error);
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-danger:hover {
+            background: #a01028;
+        }
+
+        .btn-add {
+            background: var(--color-success);
+            color: white;
+        }
+
+        .btn-add:hover {
+            background: #1a6b4a;
+        }
+
+        .net-worth {
+            font-size: 24px;
+            font-weight: 700;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .net-worth.negative {
+            background: rgba(192, 21, 47, 0.1);
+            color: var(--color-error);
+        }
+
+        .net-worth.positive {
+            background: rgba(33, 128, 141, 0.1);
+            color: var(--color-success);
+        }
+
+        .last-updated {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-top: 10px;
+        }
+
+        .account-row {
+            background: var(--color-bg);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .account-row-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+            margin-bottom: 10px;
+        }
+
+        .account-row-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .account-row-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 3px solid var(--color-success);
+        }
+
+        .account-row-summary-item {
+            font-size: 13px;
+        }
+
+        .account-row-summary-label {
+            color: var(--color-text-secondary);
+            font-size: 11px;
+        }
+
+        .account-row-summary-value {
+            font-weight: 700;
+            color: var(--color-primary);
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .form-group {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            td, th {
+                padding: 8px;
+            }
+
+            .account-row-header,
+            .account-row-content,
+            .account-row-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💰 Financial Dashboard</h1>
+            <p class="subtitle">Track your savings, mortgages, and net worth</p>
+        </header>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('savings')">Savings Accounts</button>
+            <button class="tab-btn" onclick="switchTab('residential')">Residential Mortgage</button>
+            <button class="tab-btn" onclick="switchTab('btl1')">BTL Mortgage 1</button>
+            <button class="tab-btn" onclick="switchTab('btl2')">BTL Mortgage 2</button>
+        </div>
+
+        <!-- DASHBOARD TAB -->
+        <div id="dashboard" class="tab-content active">
+            <div class="section">
+                <div class="section-title">Savings Summary</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Account Name</th>
+                            <th>Balance</th>
+                            <th>Annual Rate</th>
+                            <th>Monthly Interest</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="savingsSummaryTable"></tbody>
+                </table>
+                <div class="summary-grid">
+                    <div class="summary-card success">
+                        <div class="card-label">Total Savings</div>
+                        <div class="card-value"><span class="currency">£</span><span id="totalSavings">0</span></div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Monthly Interest Earned</div>
+                        <div class="card-value"><span class="currency">£</span><span id="totalSavingsInterest">0</span></div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Annual Interest</div>
+                        <div class="card-value"><span class="currency">£</span><span id="annualSavingsInterest">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Mortgages Summary</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mortgage Type</th>
+                            <th>Current Balance</th>
+                            <th>Interest Rate</th>
+                            <th>Monthly Payment</th>
+                            <th>Maturity Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mortgageSummaryTable"></tbody>
+                </table>
+                <div class="summary-grid">
+                    <div class="summary-card warning">
+                        <div class="card-label">Total Debt</div>
+                        <div class="card-value"><span class="currency">£</span><span id="totalDebt">0</span></div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Total Monthly Payments</div>
+                        <div class="card-value"><span class="currency">£</span><span id="totalPayments">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Net Position</div>
+                <div class="summary-grid">
+                    <div class="summary-card success">
+                        <div class="card-label">Total Assets (Savings)</div>
+                        <div class="card-value"><span class="currency">£</span><span id="netAssets">0</span></div>
+                    </div>
+                    <div class="summary-card warning">
+                        <div class="card-label">Total Liabilities</div>
+                        <div class="card-value"><span class="currency">£</span><span id="netLiabilities">0</span></div>
+                    </div>
+                </div>
+                <div id="netWorth" class="net-worth negative">NET WORTH: <span id="netWorthValue">£0</span></div>
+                <p class="last-updated" id="lastUpdated"></p>
+            </div>
+        </div>
+
+        <!-- SAVINGS TAB -->
+        <div id="savings" class="tab-content">
+            <div class="section">
+                <div class="section-title">Savings Accounts - Detailed Tracking</div>
+                <p style="margin-bottom: 20px; color: var(--color-text-secondary); font-size: 14px;">Add, edit, or remove savings accounts. All calculations update automatically.</p>
+                
+                <div id="savingsAccountsContainer"></div>
+
+                <div class="button-group">
+                    <button class="btn-add" onclick="addNewAccount()">+ Add New Account</button>
+                    <button class="btn-primary" onclick="recalculate()">Recalculate All</button>
+                    <button class="btn-secondary" onclick="resetSavings()">Reset to Defaults</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESIDENTIAL MORTGAGE TAB -->
+        <div id="residential" class="tab-content">
+            <div class="section">
+                <div class="section-title">Residential Mortgage - Repayment Tracking</div>
+                
+                <div class="form-group">
+                    <div>
+                        <label>Lender</label>
+                        <input type="text" id="residentialLender" placeholder="Bank Name" value="Your Bank Name">
+                    </div>
+                    <div>
+                        <label>Original Loan Amount</label>
+                        <input type="number" id="residentialOriginal" value="450000">
+                    </div>
+                    <div>
+                        <label>Current Balance</label>
+                        <input type="number" id="residentialBalance" value="250000" onchange="recalculate()">
+                    </div>
+                    <div>
+                        <label>Interest Rate (%)</label>
+                        <input type="number" id="residentialRate" value="4.75" step="0.01" onchange="recalculate()">
+                    </div>
+                    <div>
+                        <label>Loan Term (Years)</label>
+                        <input type="number" id="residentialTerm" value="25" onchange="recalculate()">
+                    </div>
+                    <div>
+                        <label>Maturity Date</label>
+                        <input type="date" id="residentialMaturity" value="2050-12-31">
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Payment Metric</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Monthly Payment</td>
+                            <td><span class="currency">£</span><span id="monthlyPayment">0</span></td>
+                        </tr>
+                        <tr>
+                            <td>Interest Portion (This Month)</td>
+                            <td><span class="currency">£</span><span id="interestPortion">0</span></td>
+                        </tr>
+                        <tr>
+                            <td>Capital Repayment (This Month)</td>
+                            <td><span class="currency">£</span><span id="capitalPortion">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="card-label">Annual Interest This Year</div>
+                        <div class="card-value"><span class="currency">£</span><span id="annualInterest">0</span></div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Annual Capital Repayment</div>
+                        <div class="card-value"><span class="currency">£</span><span id="annualCapital">0</span></div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="recalculate()">Recalculate</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BTL MORTGAGE 1 TAB -->
+        <div id="btl1" class="tab-content">
+            <div class="section">
+                <div class="section-title">Buy-to-Let Mortgage 1 - Interest Only Tracking</div>
+                
+                <div class="form-group">
+                    <div>
+                        <label>Lender</label>
+                        <input type="text" id="btl1Lender" placeholder="Bank Name" value="Your Bank Name">
+                    </div>
+                    <div>
+                        <label>Original Loan Amount</label>
+                        <input type="number" id="btl1Original" value="200000">
+                    </div>
+                    <div>
+                        <label>Current Balance</label>
+                        <input type="number" id="btl1Balance" value="180000" onchange="recalculate()">
+                    </div>
+                    <div>
+                        <label>Interest Rate (%)</label>
+                        <input type="number" id="btl1Rate" value="5.25" step="0.01" onchange="recalculate()">
+                    </div>
+                    <div>
+                        <label>Maturity Date</label>
+                        <input type="date" id="btl1Maturity" value="2035-09-30">
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Payment Metric</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Monthly Interest Payment</td>
+                            <td><span class="currency">£</span><span id="btl1MonthlyPayment">0</span></td>
+                        </tr>
+                        <tr>
+                            <td>Annual Interest (Tax Deductible)</td>
+                            <td><span class="currency">£</span><span id="btl1AnnualInterest">0</span></td>
+                        </tr>
+                        <tr>
+                            <td>Capital Due at Maturity</td>
+                            <td><span class="currency">£</span><span id="btl1Capital">0</span></td>
+                        </tr>
+                        <tr>
+                            <td>Years Until Maturity</td>
+                            <td><span id="btl1Years">0</span> years</td>
+                        </tr>
+                        <tr>
+                            <td>Recommended Annual Capital Plan</td>
+                            <td><span class="currency">£</span><span id="btl1AnnualPlan">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="recalculate()">Recalculate</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BTL MORTGAGE 2 TAB -->
+        <div id="btl2" class="tab-content">
+            <div class="section">
+                <div class="section-title">Buy-to-Let Mortgage 2 - Interest Only Tracking</div>
+                
+                <div class="form-group">
+                    <div>
+                        <label>Lender</label>
+                        <input type="text" id="btl2Lender" placeholder="Bank Name" value="Your Bank Name">
+                    </div>
+                    <div>
+                        <label>Original Loan Amount</label>
+                        <input type="number" id="btl2Original" value="150000">
+                    </div>
+                    <div>
+                        <label>Current Balance</label>
+                        <input type="number" id="btl2Balance" value="150000" onchange="recalculate()">
+                    </div>
+                    <div>
+                        <label>Interest Rate (%)</label>
+                        <input type="number" id="btl2Rate" value="5.10" step="0.01" onchange="recalculate()">
+                    </div>
+                    <div>
+                        <label>Maturity Date</label>
+                        <input type="date" id="btl2Maturity" value="2038-03-31">
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Payment Metric</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Monthly Interest Payment</td>
+                            <td><span class="currency">£</span><span id="btl2MonthlyPayment">0</span></td>
+                        </tr>
+                        <tr>
+                            <td>Annual Interest (Tax Deductible)</td>
+                            <td><span class="currency">£</span><span id="btl2AnnualInterest">0</span></td>
+                        </tr>
+                        <tr>
+                            <td>Capital Due at Maturity</td>
+                            <td><span class="currency">£</span><span id="btl2Capital">0</span></td>
+                        </tr>
+                        <tr>
+                            <td>Years Until Maturity</td>
+                            <td><span id="btl2Years">0</span> years</td>
+                        </tr>
+                        <tr>
+                            <td>Recommended Annual Capital Plan</td>
+                            <td><span class="currency">£</span><span id="btl2AnnualPlan">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="recalculate()">Recalculate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Savings data structure
+        let savingsAccounts = [
+            { name: 'Premium Savings Account', institution: 'Your Bank Name', balance: 45000, rate: 5.15, notes: 'ISA - Tax Free' },
+            { name: 'Standard Savings', institution: 'Your Bank Name', balance: 12500, rate: 3.50, notes: 'Regular Saver' },
+            { name: 'Money Market Fund', institution: 'Your Bank Name', balance: 8750, rate: 4.25, notes: 'Short-term parking' }
+        ];
+
+        function switchTab(tabName) {
+            const contents = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-btn');
+            
+            contents.forEach(c => c.classList.remove('active'));
+            buttons.forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function formatCurrency(value) {
+            return value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function calculateSavingsInterest(balance, rate) {
+            return (balance * rate / 12) / 100;
+        }
+
+        function renderSavingsAccounts() {
+            const container = document.getElementById('savingsAccountsContainer');
+            let html = '';
+            
+            savingsAccounts.forEach((acc, idx) => {
+                const monthlyInt = calculateSavingsInterest(acc.balance, acc.rate);
+                const annualInt = monthlyInt * 12;
+                html += `
+                    <div class="account-row">
+                        <div class="account-row-header">
+                            <div>
+                                <label>Account Name</label>
+                                <input type="text" value="${acc.name}" onchange="savingsAccounts[${idx}].name=this.value; renderSavingsAccounts(); recalculate()">
+                            </div>
+                            <div>
+                                <label>Institution</label>
+                                <input type="text" value="${acc.institution}" onchange="savingsAccounts[${idx}].institution=this.value; renderSavingsAccounts(); recalculate()">
+                            </div>
+                            <div>
+                                <label>Balance</label>
+                                <input type="number" value="${acc.balance}" onchange="savingsAccounts[${idx}].balance=parseFloat(this.value); renderSavingsAccounts(); recalculate()">
+                            </div>
+                            <div>
+                                <label>Annual Rate (%)</label>
+                                <input type="number" step="0.01" value="${acc.rate}" onchange="savingsAccounts[${idx}].rate=parseFloat(this.value); renderSavingsAccounts(); recalculate()">
+                            </div>
+                            <div>
+                                <label>Notes</label>
+                                <input type="text" value="${acc.notes}" onchange="savingsAccounts[${idx}].notes=this.value; renderSavingsAccounts(); recalculate()">
+                            </div>
+                        </div>
+                        <div class="account-row-summary">
+                            <div class="account-row-summary-item">
+                                <div class="account-row-summary-label">Monthly Interest</div>
+                                <div class="account-row-summary-value">£${formatCurrency(monthlyInt)}</div>
+                            </div>
+                            <div class="account-row-summary-item">
+                                <div class="account-row-summary-label">Annual Interest</div>
+                                <div class="account-row-summary-value">£${formatCurrency(annualInt)}</div>
+                            </div>
+                            <div class="account-row-summary-item">
+                                <button class="btn-danger" onclick="removeAccount(${idx})">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function addNewAccount() {
+            savingsAccounts.push({ 
+                name: 'New Savings Account', 
+                institution: 'Bank Name', 
+                balance: 0, 
+                rate: 3.5, 
+                notes: 'New account' 
+            });
+            renderSavingsAccounts();
+            recalculate();
+        }
+
+        function removeAccount(idx) {
+            if (confirm('Are you sure you want to delete this account?')) {
+                savingsAccounts.splice(idx, 1);
+                renderSavingsAccounts();
+                recalculate();
+            }
+        }
+
+        function recalculate() {
+            // Savings calculations
+            let totalSavings = 0;
+            let totalSavingsInt = 0;
+
+            savingsAccounts.forEach(acc => {
+                totalSavings += acc.balance;
+                totalSavingsInt += calculateSavingsInterest(acc.balance, acc.rate);
+            });
+
+            const annualSavingsInt = totalSavingsInt * 12;
+
+            document.getElementById('totalSavings').textContent = formatCurrency(totalSavings);
+            document.getElementById('totalSavingsInterest').textContent = formatCurrency(totalSavingsInt);
+            document.getElementById('annualSavingsInterest').textContent = formatCurrency(annualSavingsInt);
+            document.getElementById('netAssets').textContent = formatCurrency(totalSavings);
+
+            // Residential mortgage calculations
+            const residentialBalance = parseFloat(document.getElementById('residentialBalance').value) || 0;
+            const residentialRate = parseFloat(document.getElementById('residentialRate').value) || 0;
+            const residentialTerm = parseFloat(document.getElementById('residentialTerm').value) || 25;
+
+            const monthlyRate = residentialRate / 100 / 12;
+            const numPayments = residentialTerm * 12;
+            let monthlyPayment = 0;
+
+            if (monthlyRate > 0) {
+                monthlyPayment = (residentialBalance * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+            }
+
+            const interestPortion = residentialBalance * (residentialRate / 100 / 12);
+            const capitalPortion = monthlyPayment - interestPortion;
+
+            document.getElementById('monthlyPayment').textContent = formatCurrency(monthlyPayment);
+            document.getElementById('interestPortion').textContent = formatCurrency(interestPortion);
+            document.getElementById('capitalPortion').textContent = formatCurrency(capitalPortion);
+            document.getElementById('annualInterest').textContent = formatCurrency(interestPortion * 12);
+            document.getElementById('annualCapital').textContent = formatCurrency(capitalPortion * 12);
+
+            // BTL Mortgage 1
+            const btl1Balance = parseFloat(document.getElementById('btl1Balance').value) || 0;
+            const btl1Rate = parseFloat(document.getElementById('btl1Rate').value) || 0;
+            const btl1MaturityDate = new Date(document.getElementById('btl1Maturity').value);
+            const btl1MonthlyPayment = btl1Balance * (btl1Rate / 100 / 12);
+            const btl1AnnualInt = btl1MonthlyPayment * 12;
+            const yearsUntilMaturity1 = Math.max(0, btl1MaturityDate.getFullYear() - new Date().getFullYear());
+
+            document.getElementById('btl1MonthlyPayment').textContent = formatCurrency(btl1MonthlyPayment);
+            document.getElementById('btl1AnnualInterest').textContent = formatCurrency(btl1AnnualInt);
+            document.getElementById('btl1Capital').textContent = formatCurrency(btl1Balance);
+            document.getElementById('btl1Years').textContent = yearsUntilMaturity1;
+            document.getElementById('btl1AnnualPlan').textContent = formatCurrency(yearsUntilMaturity1 > 0 ? btl1Balance / yearsUntilMaturity1 : 0);
+
+            // BTL Mortgage 2
+            const btl2Balance = parseFloat(document.getElementById('btl2Balance').value) || 0;
+            const btl2Rate = parseFloat(document.getElementById('btl2Rate').value) || 0;
+            const btl2MaturityDate = new Date(document.getElementById('btl2Maturity').value);
+            const btl2MonthlyPayment = btl2Balance * (btl2Rate / 100 / 12);
+            const btl2AnnualInt = btl2MonthlyPayment * 12;
+            const yearsUntilMaturity2 = Math.max(0, btl2MaturityDate.getFullYear() - new Date().getFullYear());
+
+            document.getElementById('btl2MonthlyPayment').textContent = formatCurrency(btl2MonthlyPayment);
+            document.getElementById('btl2AnnualInterest').textContent = formatCurrency(btl2AnnualInt);
+            document.getElementById('btl2Capital').textContent = formatCurrency(btl2Balance);
+            document.getElementById('btl2Years').textContent = yearsUntilMaturity2;
+            document.getElementById('btl2AnnualPlan').textContent = formatCurrency(yearsUntilMaturity2 > 0 ? btl2Balance / yearsUntilMaturity2 : 0);
+
+            // Dashboard summary
+            const totalDebt = residentialBalance + btl1Balance + btl2Balance;
+            const totalPayments = monthlyPayment + btl1MonthlyPayment + btl2MonthlyPayment;
+            const netWorth = totalSavings - totalDebt;
+
+            document.getElementById('totalDebt').textContent = formatCurrency(totalDebt);
+            document.getElementById('totalPayments').textContent = formatCurrency(totalPayments);
+            document.getElementById('netLiabilities').textContent = formatCurrency(totalDebt);
+            document.getElementById('netWorthValue').textContent = '£' + formatCurrency(netWorth);
+
+            const netWorthEl = document.getElementById('netWorth');
+            if (netWorth >= 0) {
+                netWorthEl.classList.remove('negative');
+                netWorthEl.classList.add('positive');
+            } else {
+                netWorthEl.classList.remove('positive');
+                netWorthEl.classList.add('negative');
+            }
+
+            // Update summary tables
+            updateSavingsSummaryTable();
+            updateMortgageSummaryTable();
+
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleString();
+        }
+
+        function updateSavingsSummaryTable() {
+            const tbody = document.getElementById('savingsSummaryTable');
+            tbody.innerHTML = '';
+
+            savingsAccounts.forEach(acc => {
+                const monthlyInt = calculateSavingsInterest(acc.balance, acc.rate);
+                const row = `
+                    <tr>
+                        <td>${acc.name}</td>
+                        <td>£${formatCurrency(acc.balance)}</td>
+                        <td>${acc.rate}%</td>
+                        <td>£${formatCurrency(monthlyInt)}</td>
+                        <td>${acc.notes}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function updateMortgageSummaryTable() {
+            const tbody = document.getElementById('mortgageSummaryTable');
+            tbody.innerHTML = '';
+
+            const residentialBalance = parseFloat(document.getElementById('residentialBalance').value) || 0;
+            const residentialRate = parseFloat(document.getElementById('residentialRate').value) || 0;
+            const residentialTerm = parseFloat(document.getElementById('residentialTerm').value) || 25;
+            const monthlyRate = residentialRate / 100 / 12;
+            const numPayments = residentialTerm * 12;
+            let monthlyPayment = 0;
+
+            if (monthlyRate > 0) {
+                monthlyPayment = (residentialBalance * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+            }
+
+            const btl1Balance = parseFloat(document.getElementById('btl1Balance').value) || 0;
+            const btl1Rate = parseFloat(document.getElementById('btl1Rate').value) || 0;
+            const btl1MonthlyPayment = btl1Balance * (btl1Rate / 100 / 12);
+
+            const btl2Balance = parseFloat(document.getElementById('btl2Balance').value) || 0;
+            const btl2Rate = parseFloat(document.getElementById('btl2Rate').value) || 0;
+            const btl2MonthlyPayment = btl2Balance * (btl2Rate / 100 / 12);
+
+            tbody.innerHTML = `
+                <tr>
+                    <td>Residential (Repayment)</td>
+                    <td>£${formatCurrency(residentialBalance)}</td>
+                    <td>${residentialRate}%</td>
+                    <td>£${formatCurrency(monthlyPayment)}</td>
+                    <td>${document.getElementById('residentialMaturity').value}</td>
+                </tr>
+                <tr>
+                    <td>Buy-to-Let 1 (Interest Only)</td>
+                    <td>£${formatCurrency(btl1Balance)}</td>
+                    <td>${btl1Rate}%</td>
+                    <td>£${formatCurrency(btl1MonthlyPayment)}</td>
+                    <td>${document.getElementById('btl1Maturity').value}</td>
+                </tr>
+                <tr>
+                    <td>Buy-to-Let 2 (Interest Only)</td>
+                    <td>£${formatCurrency(btl2Balance)}</td>
+                    <td>${btl2Rate}%</td>
+                    <td>£${formatCurrency(btl2MonthlyPayment)}</td>
+                    <td>${document.getElementById('btl2Maturity').value}</td>
+                </tr>
+            `;
+        }
+
+        function resetSavings() {
+            if (confirm('Reset all savings accounts to defaults?')) {
+                savingsAccounts = [
+                    { name: 'Premium Savings Account', institution: 'Your Bank Name', balance: 45000, rate: 5.15, notes: 'ISA - Tax Free' },
+                    { name: 'Standard Savings', institution: 'Your Bank Name', balance: 12500, rate: 3.50, notes: 'Regular Saver' },
+                    { name: 'Money Market Fund', institution: 'Your Bank Name', balance: 8750, rate: 4.25, notes: 'Short-term parking' }
+                ];
+                renderSavingsAccounts();
+                recalculate();
+            }
+        }
+
+        // LocalStorage persistence
+        function saveData() {
+            const data = {
+                savingsAccounts: savingsAccounts,
+                residentialLender: document.getElementById('residentialLender').value,
+                residentialOriginal: document.getElementById('residentialOriginal').value,
+                residentialBalance: document.getElementById('residentialBalance').value,
+                residentialRate: document.getElementById('residentialRate').value,
+                residentialTerm: document.getElementById('residentialTerm').value,
+                residentialMaturity: document.getElementById('residentialMaturity').value,
+                btl1Lender: document.getElementById('btl1Lender').value,
+                btl1Original: document.getElementById('btl1Original').value,
+                btl1Balance: document.getElementById('btl1Balance').value,
+                btl1Rate: document.getElementById('btl1Rate').value,
+                btl1Maturity: document.getElementById('btl1Maturity').value,
+                btl2Lender: document.getElementById('btl2Lender').value,
+                btl2Original: document.getElementById('btl2Original').value,
+                btl2Balance: document.getElementById('btl2Balance').value,
+                btl2Rate: document.getElementById('btl2Rate').value,
+                btl2Maturity: document.getElementById('btl2Maturity').value
+            };
+            localStorage.setItem('financialDashboard', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('financialDashboard');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    savingsAccounts = data.savingsAccounts || savingsAccounts;
+                    document.getElementById('residentialLender').value = data.residentialLender || 'Your Bank Name';
+                    document.getElementById('residentialOriginal').value = data.residentialOriginal || '450000';
+                    document.getElementById('residentialBalance').value = data.residentialBalance || '250000';
+                    document.getElementById('residentialRate').value = data.residentialRate || '4.75';
+                    document.getElementById('residentialTerm').value = data.residentialTerm || '25';
+                    document.getElementById('residentialMaturity').value = data.residentialMaturity || '2050-12-31';
+                    document.getElementById('btl1Lender').value = data.btl1Lender || 'Your Bank Name';
+                    document.getElementById('btl1Original').value = data.btl1Original || '200000';
+                    document.getElementById('btl1Balance').value = data.btl1Balance || '180000';
+                    document.getElementById('btl1Rate').value = data.btl1Rate || '5.25';
+                    document.getElementById('btl1Maturity').value = data.btl1Maturity || '2035-09-30';
+                    document.getElementById('btl2Lender').value = data.btl2Lender || 'Your Bank Name';
+                    document.getElementById('btl2Original').value = data.btl2Original || '150000';
+                    document.getElementById('btl2Balance').value = data.btl2Balance || '150000';
+                    document.getElementById('btl2Rate').value = data.btl2Rate || '5.10';
+                    document.getElementById('btl2Maturity').value = data.btl2Maturity || '2038-03-31';
+                } catch (e) {
+                    console.error('Error loading saved data:', e);
+                }
+            }
+        }
+
+        // Add auto-save to input fields
+        function attachSaveListeners() {
+            const inputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"]');
+            inputs.forEach(input => {
+                input.addEventListener('change', saveData);
+            });
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            loadData();
+            renderSavingsAccounts();
+            recalculate();
+            attachSaveListeners();
+        });
+
+        // Override the render and recalculate functions to save after updates
+        const originalRenderSavings = renderSavingsAccounts;
+        renderSavingsAccounts = function() {
+            originalRenderSavings();
+            attachSaveListeners();
+            saveData();
+        };
+
+        const originalRecalculate = recalculate;
+        recalculate = function() {
+            originalRecalculate();
+            saveData();
+        };
+    </script>
+</body>
+</html>
