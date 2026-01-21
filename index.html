@@ -712,6 +712,27 @@
   //  appId: "YOUR_APP_ID"
   //};
 
+// Initialize on load
+    window.addEventListener('load', () => {
+            // Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyC6GXHFRwQ4LWVY5sPCKpkAh9MBXyWmVmI",
+                authDomain: "financial-dashboard-6d9b2.firebaseapp.com",
+                databaseURL: "https://financial-dashboard-6d9b2-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "financial-dashboard-6d9b2",
+                storageBucket: "financial-dashboard-6d9b2.firebasestorage.app",
+                messagingSenderId: "378634305912",
+                appId: "1:378634305912:web:3421c7067c5c438c87c88d"
+            };
+            
+            initializeFirebase(firebaseConfig);
+            
+            loadData();
+            renderSavingsAccounts();
+            recalculate();
+            attachSaveListeners();
+        });
+
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getDatabase(app);
