@@ -68,6 +68,7 @@
             align-items: center;
             justify-content: center;
             font-weight: 600;
+            font-size: 14px;
         }
 
         .btn {
@@ -310,6 +311,12 @@
             font-size: 14px;
         }
 
+        .account-field input:focus {
+            outline: none;
+            border-color: var(--color-teal-500);
+            box-shadow: 0 0 0 3px rgba(33, 128, 133, 0.1);
+        }
+
         .delete-btn {
             background-color: var(--color-red-500);
             color: white;
@@ -337,8 +344,12 @@
     </div>
 
     <div class="container">
-        <div id="loadingMessage" class="loading">Initializing...</div>
+        <div id="loadingMessage" class="loading">
+            Initializing...
+        </div>
+
         <div id="mainContent" style="display: none;">
+            <!-- Navigation Tabs -->
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
                 <button class="tab" onclick="switchTab('savings')">Savings Accounts</button>
@@ -349,52 +360,52 @@
             <!-- Dashboard Tab -->
             <div id="dashboard" class="tab-content active">
                 <div class="card">
-                    <h2>Savings Summary</h2>
+                    <h2>💾 Savings Summary</h2>
                     <div class="summary-cards">
                         <div class="summary-card">
                             <h3>Total Savings</h3>
-                            <div class="value" id="totalSavings">£0</div>
+                            <div class="value" id="totalSavings">£0.00</div>
                         </div>
                         <div class="summary-card">
                             <h3>Monthly Interest Earned</h3>
-                            <div class="value" id="monthlyInterest">£0</div>
+                            <div class="value" id="monthlyInterest">£0.00</div>
                         </div>
                         <div class="summary-card">
                             <h3>Annual Interest</h3>
-                            <div class="value" id="annualInterest">£0</div>
+                            <div class="value" id="annualInterest">£0.00</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h2>Mortgages Summary</h2>
+                    <h2>🏠 Mortgages Summary</h2>
                     <div class="summary-cards">
                         <div class="summary-card" style="border-left-color: var(--color-red-500);">
                             <h3>Total Debt</h3>
-                            <div class="value" id="totalDebt">£0</div>
+                            <div class="value" id="totalDebt">£0.00</div>
                         </div>
                         <div class="summary-card" style="border-left-color: var(--color-red-500);">
                             <h3>Total Monthly Payments</h3>
-                            <div class="value" id="totalMonthlyPayments">£0</div>
+                            <div class="value" id="totalMonthlyPayments">£0.00</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h2>Net Position</h2>
+                    <h2>📊 Net Position</h2>
                     <div class="summary-cards">
                         <div class="summary-card">
                             <h3>Total Assets (Savings)</h3>
-                            <div class="value" id="netAssets">£0</div>
+                            <div class="value" id="netAssets">£0.00</div>
                         </div>
                         <div class="summary-card" style="border-left-color: var(--color-red-500);">
                             <h3>Total Liabilities</h3>
-                            <div class="value" id="netLiabilities">£0</div>
+                            <div class="value" id="netLiabilities">£0.00</div>
                         </div>
                     </div>
                     <div class="net-worth">
                         <h2>NET WORTH</h2>
-                        <div class="value" id="netWorth">£0</div>
+                        <div class="value" id="netWorth">£0.00</div>
                     </div>
                 </div>
             </div>
@@ -402,7 +413,7 @@
             <!-- Savings Accounts Tab -->
             <div id="savings" class="tab-content">
                 <div class="card">
-                    <h2>Savings Accounts</h2>
+                    <h2>💳 Savings Accounts</h2>
                     <button class="btn btn-primary add-button" onclick="addSavingsAccount()">+ Add Account</button>
                     <div id="savingsContainer"></div>
                 </div>
@@ -411,7 +422,7 @@
             <!-- Residential Mortgage Tab -->
             <div id="residential" class="tab-content">
                 <div class="card">
-                    <h2>Residential Mortgage</h2>
+                    <h2>🏡 Residential Mortgage</h2>
                     <div id="residentialContainer"></div>
                 </div>
             </div>
@@ -419,7 +430,7 @@
             <!-- BTL Mortgages Tab -->
             <div id="btl" class="tab-content">
                 <div class="card">
-                    <h2>BTL (Buy-to-Let) Mortgages</h2>
+                    <h2>🏢 BTL (Buy-to-Let) Mortgages</h2>
                     <button class="btn btn-primary add-button" onclick="addBTLMortgage()">+ Add BTL Mortgage</button>
                     <div id="btlContainer"></div>
                 </div>
@@ -427,15 +438,26 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"></script>
+    <!-- Firebase SDK - Modular Import -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { 
+            getAuth, 
+            GoogleAuthProvider, 
+            signInWithPopup, 
+            signOut, 
+            onAuthStateChanged 
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+        import { 
+            getDatabase, 
+            ref, 
+            set, 
+            onValue 
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
 
-    <script>
-        // Firebase configuration
+        // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyBM_RsLg1bTw4Q2uTvJtcRAwXEmGZoUnzA",
+            apiKey: "AIzaSyBMRsLg1bTw4Q2uTvJtcRAwXEmGZoUnzA",
             authDomain: "financial-dashboard-485021.firebaseapp.com",
             projectId: "financial-dashboard-485021",
             storageBucket: "financial-dashboard-485021.firebasestorage.app",
@@ -444,82 +466,149 @@
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+
+        // Make Firebase objects globally accessible
+        window.auth = auth;
+        window.database = database;
+        window.GoogleAuthProvider = GoogleAuthProvider;
 
         let currentUser = null;
 
-        // Authentication
-        auth.onAuthStateChanged((user) => {
+        // ===== AUTHENTICATION =====
+        
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                document.getElementById('loadingMessage').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-                document.getElementById('authSection').innerHTML = `
+                console.log("User signed in:", user.email);
+                document.getElementById("loadingMessage").style.display = "none";
+                document.getElementById("mainContent").style.display = "block";
+                
+                const initial = user.email.charAt(0).toUpperCase();
+                document.getElementById("authSection").innerHTML = `
                     <div class="user-info">
-                        <span>Signed in as ${user.email}</span>
-                        <button class="btn btn-secondary" onclick="signOut()">Sign Out</button>
+                        <div class="user-avatar">${initial}</div>
+                        <span>${user.email}</span>
+                        <button class="btn btn-secondary" onclick="performSignOut()">Sign Out</button>
                     </div>
                 `;
-                loadData();
+
+                // Initialize data structure
+                window.dashboardData = {
+                    savingsAccounts: [],
+                    residentialMortgage: { currentBalance: 0, interestRate: 0, monthlyPayment: 0, maturityDate: '' },
+                    btlMortgages: []
+                };
+
+                // Load data from Firebase
+                await loadData();
+                renderAllTabs();
+                updateDashboard();
             } else {
                 currentUser = null;
-                document.getElementById('mainContent').style.display = 'none';
-                document.getElementById('loadingMessage').style.display = 'block';
-                document.getElementById('loadingMessage').textContent = 'Please sign in to continue';
-                document.getElementById('authSection').innerHTML = `
+                document.getElementById("mainContent").style.display = "none";
+                document.getElementById("loadingMessage").style.display = "block";
+                document.getElementById("loadingMessage").textContent = "Please sign in to continue";
+                document.getElementById("authSection").innerHTML = `
                     <button class="btn btn-primary" onclick="signInWithGoogle()">Sign in with Google</button>
                 `;
             }
         });
 
-        function signInWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    console.log('Signed in:', result.user);
-                })
-                .catch((error) => {
-                    console.error('Sign in error:', error);
-                    alert('Sign in failed: ' + error.message);
-                });
-        }
+        window.signInWithGoogle = async function() {
+            try {
+                const provider = new GoogleAuthProvider();
+                provider.addScope('profile');
+                provider.addScope('email');
+                const result = await signInWithPopup(auth, provider);
+                console.log("Successfully signed in:", result.user.email);
+            } catch (error) {
+                console.error("Sign in error:", error.code, error.message);
+                
+                let userMessage = "Sign in failed";
+                if (error.code === 'auth/popup-blocked') {
+                    userMessage = 'Pop-up was blocked. Please allow pop-ups for this site.';
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    userMessage = 'Sign-in was cancelled.';
+                } else if (error.code === 'auth/operation-not-supported-in-this-environment') {
+                    userMessage = 'Sign-in not supported. Check CORS and authorized domains in Firebase.';
+                } else if (error.code === 'auth/failed-sign-in-temporarily-disabled') {
+                    userMessage = 'Sign-in temporarily disabled. Try again later.';
+                } else {
+                    userMessage = 'Sign in failed: ' + error.message;
+                }
+                alert(userMessage);
+            }
+        };
 
-        function signOut() {
-            auth.signOut()
-                .then(() => {
-                    console.log('Signed out');
-                })
-                .catch((error) => {
-                    console.error('Sign out error:', error);
-                });
-        }
+        window.performSignOut = async function() {
+            try {
+                await signOut(auth);
+                console.log("User signed out");
+            } catch (error) {
+                console.error("Sign out error:", error);
+                alert("Sign out failed: " + error.message);
+            }
+        };
 
-        // Data Management
+        // ===== DATA MANAGEMENT =====
+
         function getUserRef() {
             if (!currentUser) return null;
-            return database.ref(`users/${currentUser.uid}`);
+            return ref(database, `users/${currentUser.uid}`);
         }
 
-        function loadData() {
+        window.loadData = async function() {
             const userRef = getUserRef();
             if (!userRef) return;
 
-            userRef.once('value', (snapshot) => {
-                const data = snapshot.val() || { savingsAccounts: [], residentialMortgage: {}, btlMortgages: [] };
-                window.dashboardData = data;
-                renderAllTabs();
+            return new Promise((resolve, reject) => {
+                onValue(userRef, (snapshot) => {
+                    try {
+                        const data = snapshot.val();
+                        if (data) {
+                            window.dashboardData = data;
+                            console.log("Data loaded from Firebase:", window.dashboardData);
+                        } else {
+                            console.log("No data found, initializing fresh structure");
+                            window.dashboardData = {
+                                savingsAccounts: [],
+                                residentialMortgage: { currentBalance: 0, interestRate: 0, monthlyPayment: 0, maturityDate: '' },
+                                btlMortgages: []
+                            };
+                        }
+                        resolve();
+                    } catch (error) {
+                        console.error("Error processing data:", error);
+                        reject(error);
+                    }
+                }, (error) => {
+                    console.error("Error reading from database:", error);
+                    alert("Failed to load data: " + error.message);
+                    reject(error);
+                });
             });
-        }
+        };
 
-        function saveData() {
+        window.saveData = function() {
             const userRef = getUserRef();
             if (!userRef) return;
-            userRef.set(window.dashboardData);
-        }
 
-        function addSavingsAccount() {
+            set(userRef, window.dashboardData)
+                .then(() => {
+                    console.log("Data saved successfully to Firebase");
+                })
+                .catch((error) => {
+                    console.error("Error saving data:", error);
+                    alert("Failed to save data: " + error.message);
+                });
+        };
+
+        // ===== SAVINGS ACCOUNTS =====
+
+        window.addSavingsAccount = function() {
             if (!window.dashboardData.savingsAccounts) {
                 window.dashboardData.savingsAccounts = [];
             }
@@ -531,21 +620,28 @@
             });
             saveData();
             renderSavingsTab();
-        }
+            updateDashboard();
+        };
 
-        function removeSavingsAccount(index) {
-            window.dashboardData.savingsAccounts.splice(index, 1);
-            saveData();
-            renderSavingsTab();
-        }
+        window.removeSavingsAccount = function(index) {
+            if (confirm('Are you sure you want to delete this savings account?')) {
+                window.dashboardData.savingsAccounts.splice(index, 1);
+                saveData();
+                renderSavingsTab();
+                updateDashboard();
+            }
+        };
 
-        function updateSavingsAccount(index, field, value) {
-            window.dashboardData.savingsAccounts[index][field] = isNaN(value) ? value : parseFloat(value) || 0;
+        window.updateSavingsAccount = function(index, field, value) {
+            const parsed = isNaN(value) ? value : parseFloat(value) || 0;
+            window.dashboardData.savingsAccounts[index][field] = parsed;
             saveData();
             updateDashboard();
-        }
+        };
 
-        function addBTLMortgage() {
+        // ===== BTL MORTGAGES =====
+
+        window.addBTLMortgage = function() {
             if (!window.dashboardData.btlMortgages) {
                 window.dashboardData.btlMortgages = [];
             }
@@ -558,72 +654,103 @@
             });
             saveData();
             renderBTLTab();
-        }
+            updateDashboard();
+        };
 
-        function removeBTLMortgage(index) {
-            window.dashboardData.btlMortgages.splice(index, 1);
-            saveData();
-            renderBTLTab();
-        }
+        window.removeBTLMortgage = function(index) {
+            if (confirm('Are you sure you want to delete this BTL mortgage?')) {
+                window.dashboardData.btlMortgages.splice(index, 1);
+                saveData();
+                renderBTLTab();
+                updateDashboard();
+            }
+        };
 
-        function updateBTLMortgage(index, field, value) {
-            window.dashboardData.btlMortgages[index][field] = isNaN(value) ? value : parseFloat(value) || 0;
+        window.updateBTLMortgage = function(index, field, value) {
+            const parsed = isNaN(value) ? value : parseFloat(value) || 0;
+            window.dashboardData.btlMortgages[index][field] = parsed;
             saveData();
             updateDashboard();
-        }
+        };
 
-        function updateResidentialMortgage(field, value) {
+        // ===== RESIDENTIAL MORTGAGE =====
+
+        window.updateResidentialMortgage = function(field, value) {
             if (!window.dashboardData.residentialMortgage) {
                 window.dashboardData.residentialMortgage = {};
             }
-            window.dashboardData.residentialMortgage[field] = isNaN(value) ? value : parseFloat(value) || 0;
+            const parsed = isNaN(value) ? value : parseFloat(value) || 0;
+            window.dashboardData.residentialMortgage[field] = parsed;
             saveData();
             updateDashboard();
-        }
+        };
 
-        // Rendering
-        function switchTab(tabName) {
+        // ===== RENDERING =====
+
+        window.switchTab = function(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
-        }
+        };
 
-        function renderAllTabs() {
+        window.renderAllTabs = function() {
             renderSavingsTab();
             renderResidentialTab();
             renderBTLTab();
             updateDashboard();
-        }
+        };
 
-        function renderSavingsTab() {
+        window.renderSavingsTab = function() {
             const container = document.getElementById('savingsContainer');
             const accounts = window.dashboardData.savingsAccounts || [];
+
+            if (accounts.length === 0) {
+                container.innerHTML = '<p style="color: var(--color-text-secondary); text-align: center; padding: 20px;">No savings accounts yet. Click "Add Account" to get started.</p>';
+                return;
+            }
 
             container.innerHTML = accounts.map((acc, index) => `
                 <div class="account-row">
                     <div class="account-field">
                         <label>Account Name</label>
-                        <input type="text" value="${acc.name}" onchange="updateSavingsAccount(${index}, 'name', this.value)">
+                        <input 
+                            type="text" 
+                            value="${acc.name || ''}" 
+                            onchange="updateSavingsAccount(${index}, 'name', this.value)"
+                        >
                     </div>
                     <div class="account-field">
                         <label>Balance (£)</label>
-                        <input type="number" value="${acc.balance}" onchange="updateSavingsAccount(${index}, 'balance', this.value)">
+                        <input 
+                            type="number" 
+                            value="${acc.balance || 0}" 
+                            onchange="updateSavingsAccount(${index}, 'balance', this.value)"
+                        >
                     </div>
                     <div class="account-field">
                         <label>Annual Interest Rate (%)</label>
-                        <input type="number" value="${acc.interestRate}" step="0.01" onchange="updateSavingsAccount(${index}, 'interestRate', this.value)">
+                        <input 
+                            type="number" 
+                            value="${acc.interestRate || 0}" 
+                            step="0.01"
+                            onchange="updateSavingsAccount(${index}, 'interestRate', this.value)"
+                        >
                     </div>
                     <div class="account-field">
                         <label>Notes</label>
-                        <input type="text" value="${acc.notes}" onchange="updateSavingsAccount(${index}, 'notes', this.value)">
+                        <input 
+                            type="text" 
+                            value="${acc.notes || ''}" 
+                            onchange="updateSavingsAccount(${index}, 'notes', this.value)"
+                        >
                     </div>
                     <button class="delete-btn" onclick="removeSavingsAccount(${index})">Delete</button>
                 </div>
             `).join('');
-        }
+        };
 
-        function renderResidentialTab() {
+        window.renderResidentialTab = function() {
             const container = document.getElementById('residentialContainer');
             const mort = window.dashboardData.residentialMortgage || {};
 
@@ -631,57 +758,107 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Current Balance (£)</label>
-                        <input type="number" value="${mort.currentBalance || 0}" onchange="updateResidentialMortgage('currentBalance', this.value)">
+                        <input 
+                            type="number" 
+                            value="${mort.currentBalance || 0}" 
+                            onchange="updateResidentialMortgage('currentBalance', this.value)"
+                        >
                     </div>
                     <div class="form-group">
                         <label>Interest Rate (%)</label>
-                        <input type="number" value="${mort.interestRate || 0}" step="0.01" onchange="updateResidentialMortgage('interestRate', this.value)">
+                        <input 
+                            type="number" 
+                            value="${mort.interestRate || 0}" 
+                            step="0.01"
+                            onchange="updateResidentialMortgage('interestRate', this.value)"
+                        >
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>Monthly Payment (£)</label>
-                        <input type="number" value="${mort.monthlyPayment || 0}" onchange="updateResidentialMortgage('monthlyPayment', this.value)">
+                        <input 
+                            type="number" 
+                            value="${mort.monthlyPayment || 0}" 
+                            onchange="updateResidentialMortgage('monthlyPayment', this.value)"
+                        >
                     </div>
                     <div class="form-group">
                         <label>Maturity Date</label>
-                        <input type="text" value="${mort.maturityDate || ''}" onchange="updateResidentialMortgage('maturityDate', this.value)">
+                        <input 
+                            type="text" 
+                            placeholder="e.g., 2040-12-31"
+                            value="${mort.maturityDate || ''}" 
+                            onchange="updateResidentialMortgage('maturityDate', this.value)"
+                        >
                     </div>
                 </div>
             `;
-        }
+        };
 
-        function renderBTLTab() {
+        window.renderBTLTab = function() {
             const container = document.getElementById('btlContainer');
             const mortgages = window.dashboardData.btlMortgages || [];
+
+            if (mortgages.length === 0) {
+                container.innerHTML = '<p style="color: var(--color-text-secondary); text-align: center; padding: 20px;">No BTL mortgages yet. Click "Add BTL Mortgage" to get started.</p>';
+                return;
+            }
 
             container.innerHTML = mortgages.map((mort, index) => `
                 <div class="account-row">
                     <div class="account-field">
                         <label>Mortgage Name</label>
-                        <input type="text" value="${mort.name}" onchange="updateBTLMortgage(${index}, 'name', this.value)">
+                        <input 
+                            type="text" 
+                            value="${mort.name || ''}" 
+                            onchange="updateBTLMortgage(${index}, 'name', this.value)"
+                        >
                     </div>
                     <div class="account-field">
                         <label>Current Balance (£)</label>
-                        <input type="number" value="${mort.currentBalance}" onchange="updateBTLMortgage(${index}, 'currentBalance', this.value)">
+                        <input 
+                            type="number" 
+                            value="${mort.currentBalance || 0}" 
+                            onchange="updateBTLMortgage(${index}, 'currentBalance', this.value)"
+                        >
                     </div>
                     <div class="account-field">
                         <label>Interest Rate (%)</label>
-                        <input type="number" value="${mort.interestRate}" step="0.01" onchange="updateBTLMortgage(${index}, 'interestRate', this.value)">
+                        <input 
+                            type="number" 
+                            value="${mort.interestRate || 0}" 
+                            step="0.01"
+                            onchange="updateBTLMortgage(${index}, 'interestRate', this.value)"
+                        >
                     </div>
                     <div class="account-field">
                         <label>Monthly Payment (£)</label>
-                        <input type="number" value="${mort.monthlyPayment}" onchange="updateBTLMortgage(${index}, 'monthlyPayment', this.value)">
+                        <input 
+                            type="number" 
+                            value="${mort.monthlyPayment || 0}" 
+                            onchange="updateBTLMortgage(${index}, 'monthlyPayment', this.value)"
+                        >
                     </div>
                     <div class="account-field">
                         <label>Maturity Date</label>
-                        <input type="text" value="${mort.maturityDate}" onchange="updateBTLMortgage(${index}, 'maturityDate', this.value)">
+                        <input 
+                            type="text" 
+                            placeholder="e.g., 2040-12-31"
+                            value="${mort.maturityDate || ''}" 
+                            onchange="updateBTLMortgage(${index}, 'maturityDate', this.value)"
+                        >
                     </div>
                     <button class="delete-btn" onclick="removeBTLMortgage(${index})">Delete</button>
                 </div>
             `).join('');
-        }
+        };
 
-        function updateDashboard() {
+        // ===== DASHBOARD CALCULATIONS =====
+
+        window.updateDashboard = function() {
             const accounts = window.dashboardData.savingsAccounts || [];
+            
             const totalSavings = accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
             const monthlyInterest = accounts.reduce((sum, acc) => sum + ((acc.balance || 0) * (acc.interestRate || 0) / 100 / 12), 0);
             const annualInterest = accounts.reduce((sum, acc) => sum + ((acc.balance || 0) * (acc.interestRate || 0) / 100), 0);
@@ -692,24 +869,33 @@
             const totalDebt = (residentialMort.currentBalance || 0) + btlMortgages.reduce((sum, m) => sum + (m.currentBalance || 0), 0);
             const totalMonthlyPayments = (residentialMort.monthlyPayment || 0) + btlMortgages.reduce((sum, m) => sum + (m.monthlyPayment || 0), 0);
 
-            const netWorth = totalSavings - totalDebt;
+            const netAssets = totalSavings;
+            const netLiabilities = totalDebt;
+            const netWorth = netAssets - netLiabilities;
 
+            // Update UI with currency formatting
             document.getElementById('totalSavings').textContent = '£' + totalSavings.toFixed(2);
             document.getElementById('monthlyInterest').textContent = '£' + monthlyInterest.toFixed(2);
             document.getElementById('annualInterest').textContent = '£' + annualInterest.toFixed(2);
             document.getElementById('totalDebt').textContent = '£' + totalDebt.toFixed(2);
             document.getElementById('totalMonthlyPayments').textContent = '£' + totalMonthlyPayments.toFixed(2);
-            document.getElementById('netAssets').textContent = '£' + totalSavings.toFixed(2);
-            document.getElementById('netLiabilities').textContent = '£' + totalDebt.toFixed(2);
-            document.getElementById('netWorth').textContent = '£' + netWorth.toFixed(2);
-        }
+            document.getElementById('netAssets').textContent = '£' + netAssets.toFixed(2);
+            document.getElementById('netLiabilities').textContent = '£' + netLiabilities.toFixed(2);
+            
+            const netWorthColor = netWorth >= 0 ? 'var(--color-teal-500)' : 'var(--color-red-500)';
+            const netWorthElement = document.getElementById('netWorth');
+            netWorthElement.textContent = (netWorth >= 0 ? '£' : '-£') + Math.abs(netWorth).toFixed(2);
+            netWorthElement.style.color = netWorthColor;
+        };
 
         // Initialize data object
         window.dashboardData = {
             savingsAccounts: [],
-            residentialMortgage: {},
+            residentialMortgage: { currentBalance: 0, interestRate: 0, monthlyPayment: 0, maturityDate: '' },
             btlMortgages: []
         };
+
+        console.log("Financial Dashboard initialized successfully");
     </script>
 </body>
 </html>
