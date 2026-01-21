@@ -5,16 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#208080">
     <meta name="description" content="Track your savings, mortgages, and net worth">
+    <link rel="manifest" href="data:application/json,{%22name%22:%22Financial Dashboard%22,%22short_name%22:%22FinDash%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%23208080%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23208080' width='192' height='192'/><text x='50%' y='50%' font-size='120' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>💰</text></svg>%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22,%22purpose%22:%22any%22}]}">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23208080' width='100' height='100'/><text x='50' y='70' font-size='80' text-anchor='middle'>💰</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23208080' width='180' height='180'/><text x='90' y='130' font-size='120' text-anchor='middle'>💰</text></svg>">
     <title>Financial Dashboard - Savings & Mortgages</title>
-    
-    <!-- Firebase SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
-    
-    <!-- Google Sign-In -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    
     <style>
         :root {
             --color-primary: #208080;
@@ -53,79 +51,16 @@
             border-radius: 8px;
             margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
         }
 
-        .header-left h1 {
+        h1 {
             font-size: 28px;
             margin-bottom: 5px;
         }
 
-        .header-left .subtitle {
+        .subtitle {
             color: var(--color-text-secondary);
             font-size: 14px;
-        }
-
-        .header-right {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: flex-end;
-        }
-
-        #syncStatus {
-            margin-top: 0;
-            padding: 10px;
-            border-radius: 6px;
-            background: #e8f4f8;
-            font-size: 12px;
-            color: #1a1a1a;
-        }
-
-        .auth-section {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        #googleSignInButton {
-            padding: 8px 16px;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        #googleSignInButton:hover {
-            background: #f9f9f9;
-            border-color: var(--color-primary);
-        }
-
-        .btn-logout {
-            padding: 8px 16px;
-            background: var(--color-error);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn-logout:hover {
-            background: #a01028;
-        }
-
-        .user-info {
-            font-size: 12px;
-            color: var(--color-text-secondary);
-            text-align: right;
         }
 
         .nav-tabs {
@@ -375,6 +310,14 @@
             margin-bottom: 10px;
         }
 
+        .account-row-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
         .account-row-summary {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -401,15 +344,6 @@
         }
 
         @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .header-right {
-                align-items: flex-start;
-            }
-
             .form-group {
                 grid-template-columns: 1fr;
             }
@@ -431,6 +365,7 @@
             }
 
             .account-row-header,
+            .account-row-content,
             .account-row-summary {
                 grid-template-columns: 1fr;
             }
@@ -440,19 +375,18 @@
 <body>
     <div class="container">
         <header>
-            <div class="header-left">
-                <h1>💰 Financial Dashboard</h1>
-                <p class="subtitle">Track your savings, mortgages, and net worth</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div>
+                    <h1>💰 Financial Dashboard</h1>
+                    <p class="subtitle">Track your savings, mortgages, and net worth</p>
+                </div>
+                <div id="authContainer" style="text-align: right;">
+                    <div id="googleSignInButton"></div>
+                    <button id="signOutBtn" class="btn-secondary" style="display: none; margin-top: 10px;" onclick="signOutUser()">Sign Out</button>
+                </div>
             </div>
-            <div class="header-right">
-                <div id="syncStatus">
-                    <span id="syncIndicator">⚪</span> <span id="syncText">Loading...</span>
-                </div>
-                <div class="auth-section">
-                    <div id="userInfo" class="user-info" style="display:none;"></div>
-                    <button id="googleSignInButton" onclick="signInWithGoogle()">Sign In with Google</button>
-                    <button class="btn-logout" id="logoutBtn" onclick="signOutUser()" style="display:none;">Sign Out</button>
-                </div>
+            <div id="syncStatus" style="padding: 10px; border-radius: 6px; background: #e8f4f8; font-size: 12px; color: #1a1a1a;">
+                <span id="syncIndicator">⚪</span> <span id="syncText">Setting up Firebase...</span>
             </div>
         </header>
 
@@ -759,22 +693,6 @@
     </div>
 
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyC6GXHFRwQ4LWVY5sPCKpkAh9MBXyWmVmI",
-            authDomain: "financial-dashboard-6d9b2.firebaseapp.com",
-            databaseURL: "https://financial-dashboard-6d9b2-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "financial-dashboard-6d9b2",
-            storageBucket: "financial-dashboard-6d9b2.firebasestorage.app",
-            messagingSenderId: "378634305912",
-            appId: "1:378634305912:web:3421c7067c5c438c87c88d"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const auth = firebase.auth();
-
         // Savings data structure
         let savingsAccounts = [
             { name: 'Premium Savings Account', institution: 'Your Bank Name', balance: 45000, rate: 5.15, notes: 'ISA - Tax Free' },
@@ -782,61 +700,6 @@
             { name: 'Money Market Fund', institution: 'Your Bank Name', balance: 8750, rate: 4.25, notes: 'Short-term parking' }
         ];
 
-        let currentUser = null;
-        let isSaving = false;
-
-        // Auth functions
-        function signInWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    currentUser = result.user;
-                    updateAuthUI();
-                    loadUserData();
-                    updateSyncStatus('Signed in successfully', '🟢');
-                })
-                .catch((error) => {
-                    console.error('Sign-in error:', error);
-                    updateSyncStatus('Sign-in failed', '🔴');
-                });
-        }
-
-        function signOutUser() {
-            auth.signOut()
-                .then(() => {
-                    currentUser = null;
-                    updateAuthUI();
-                    resetUI();
-                    updateSyncStatus('Signed out', '⚪');
-                })
-                .catch((error) => {
-                    console.error('Sign-out error:', error);
-                });
-        }
-
-        function updateAuthUI() {
-            const signInBtn = document.getElementById('googleSignInButton');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const userInfo = document.getElementById('userInfo');
-
-            if (currentUser) {
-                signInBtn.style.display = 'none';
-                logoutBtn.style.display = 'block';
-                userInfo.style.display = 'block';
-                userInfo.textContent = `Signed in as ${currentUser.displayName}`;
-            } else {
-                signInBtn.style.display = 'block';
-                logoutBtn.style.display = 'none';
-                userInfo.style.display = 'none';
-            }
-        }
-
-        function updateSyncStatus(status, indicator) {
-            document.getElementById('syncText').textContent = status;
-            document.getElementById('syncIndicator').textContent = indicator;
-        }
-
-        // Main functions
         function switchTab(tabName) {
             const contents = document.querySelectorAll('.tab-content');
             const buttons = document.querySelectorAll('.tab-btn');
@@ -868,23 +731,23 @@
                         <div class="account-row-header">
                             <div>
                                 <label>Account Name</label>
-                                <input type="text" value="${acc.name}" onchange="savingsAccounts[${idx}].name=this.value; saveData()">
+                                <input type="text" value="${acc.name}" onchange="savingsAccounts[${idx}].name=this.value; renderSavingsAccounts(); recalculate()">
                             </div>
                             <div>
                                 <label>Institution</label>
-                                <input type="text" value="${acc.institution}" onchange="savingsAccounts[${idx}].institution=this.value; saveData()">
+                                <input type="text" value="${acc.institution}" onchange="savingsAccounts[${idx}].institution=this.value; renderSavingsAccounts(); recalculate()">
                             </div>
                             <div>
                                 <label>Balance</label>
-                                <input type="number" value="${acc.balance}" onchange="savingsAccounts[${idx}].balance=parseFloat(this.value); recalculate(); saveData()">
+                                <input type="number" value="${acc.balance}" onchange="savingsAccounts[${idx}].balance=parseFloat(this.value); renderSavingsAccounts(); recalculate()">
                             </div>
                             <div>
                                 <label>Annual Rate (%)</label>
-                                <input type="number" step="0.01" value="${acc.rate}" onchange="savingsAccounts[${idx}].rate=parseFloat(this.value); recalculate(); saveData()">
+                                <input type="number" step="0.01" value="${acc.rate}" onchange="savingsAccounts[${idx}].rate=parseFloat(this.value); renderSavingsAccounts(); recalculate()">
                             </div>
                             <div>
                                 <label>Notes</label>
-                                <input type="text" value="${acc.notes}" onchange="savingsAccounts[${idx}].notes=this.value; saveData()">
+                                <input type="text" value="${acc.notes}" onchange="savingsAccounts[${idx}].notes=this.value; renderSavingsAccounts(); recalculate()">
                             </div>
                         </div>
                         <div class="account-row-summary">
@@ -917,7 +780,6 @@
             });
             renderSavingsAccounts();
             recalculate();
-            saveData();
         }
 
         function removeAccount(idx) {
@@ -925,7 +787,6 @@
                 savingsAccounts.splice(idx, 1);
                 renderSavingsAccounts();
                 recalculate();
-                saveData();
             }
         }
 
@@ -1098,15 +959,130 @@
                 ];
                 renderSavingsAccounts();
                 recalculate();
-                saveData();
             }
         }
 
-        // Firebase sync functions
-        function saveData() {
-            if (!currentUser || isSaving) return;
+        // Firebase Configuration & Sync
+        let firebaseApp = null;
+        let database = null;
+        let auth = null;
+        let userUID = null;
+        let isSyncing = false;
+        let lastSyncTime = null;
+        let remoteData = null;
+        let isUserLoggedIn = false;
 
-            isSaving = true;
+        function updateSyncStatus(status, indicator) {
+            document.getElementById('syncText').textContent = status;
+            document.getElementById('syncIndicator').textContent = indicator;
+        }
+
+        function signOutUser() {
+            auth.signOut().then(() => {
+                isUserLoggedIn = false;
+                userUID = null;
+                document.getElementById('signOutBtn').style.display = 'none';
+                document.getElementById('googleSignInButton').style.display = 'block';
+                updateSyncStatus('Signed out - local storage only', '⚪');
+            });
+        }
+
+        async function initializeFirebase(config) {
+            try {
+                firebaseApp = firebase.initializeApp(config);
+                database = firebase.database();
+                auth = firebase.auth();
+                updateSyncStatus('Initializing...', '🔄');
+                
+                // Listen for auth state changes
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        isUserLoggedIn = true;
+                        userUID = user.uid;
+                        document.getElementById('signOutBtn').style.display = 'block';
+                        document.getElementById('googleSignInButton').style.display = 'none';
+                        updateSyncStatus('Connected to Firebase ✓', '🟢');
+                        startListeningToRemoteData();
+                    } else {
+                        isUserLoggedIn = false;
+                        userUID = null;
+                        updateSyncStatus('Not signed in - local storage only', '⚪');
+                    }
+                });
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                updateSyncStatus('Firebase setup failed - using local storage', '⚠️');
+            }
+        }
+
+        function initializeGoogleSignIn() {
+            google.accounts.id.initialize({
+                client_id: '578896440029-k0n2o7p0tcq8n0qj8j8k8j8k8j8k8j8k.apps.googleusercontent.com',
+                callback: handleCredentialResponse
+            });
+            
+            google.accounts.id.renderButton(
+                document.getElementById('googleSignInButton'),
+                { theme: 'outline', size: 'large' }
+            );
+        }
+
+        function handleCredentialResponse(response) {
+            const token = response.credential;
+            
+            // Sign in to Firebase with Google credential
+            firebase.auth().signInWithCustomToken(token).catch((error) => {
+                // If custom token fails, use the ID token for Firebase
+                const credential = firebase.auth.GoogleAuthProvider.credential(token);
+                auth.signInWithCredential(credential).catch((err) => {
+                    console.error('Google Sign-In error:', err);
+                    updateSyncStatus('Sign-in failed - using local storage', '⚠️');
+                });
+            });
+        }
+
+        function startListeningToRemoteData() {
+            if (!database || !userUID) return;
+            
+            database.ref('users/' + userUID + '/financialData').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    remoteData = snapshot.val();
+                    // Only update UI if this is from server, not from our own write
+                    if (!isSyncing) {
+                        loadRemoteData(remoteData);
+                    }
+                }
+            });
+        }
+
+        function loadRemoteData(data) {
+            try {
+                savingsAccounts = data.savingsAccounts || savingsAccounts;
+                document.getElementById('residentialLender').value = data.residentialLender || 'Your Bank Name';
+                document.getElementById('residentialOriginal').value = data.residentialOriginal || '450000';
+                document.getElementById('residentialBalance').value = data.residentialBalance || '250000';
+                document.getElementById('residentialRate').value = data.residentialRate || '4.75';
+                document.getElementById('residentialTerm').value = data.residentialTerm || '25';
+                document.getElementById('residentialMaturity').value = data.residentialMaturity || '2050-12-31';
+                document.getElementById('btl1Lender').value = data.btl1Lender || 'Your Bank Name';
+                document.getElementById('btl1Original').value = data.btl1Original || '200000';
+                document.getElementById('btl1Balance').value = data.btl1Balance || '180000';
+                document.getElementById('btl1Rate').value = data.btl1Rate || '5.25';
+                document.getElementById('btl1Maturity').value = data.btl1Maturity || '2035-09-30';
+                document.getElementById('btl2Lender').value = data.btl2Lender || 'Your Bank Name';
+                document.getElementById('btl2Original').value = data.btl2Original || '150000';
+                document.getElementById('btl2Balance').value = data.btl2Balance || '150000';
+                document.getElementById('btl2Rate').value = data.btl2Rate || '5.10';
+                document.getElementById('btl2Maturity').value = data.btl2Maturity || '2038-03-31';
+                renderSavingsAccounts();
+                recalculate();
+                attachSaveListeners();
+            } catch (e) {
+                console.error('Error loading remote data:', e);
+            }
+        }
+
+        async function saveData() {
             const data = {
                 savingsAccounts: savingsAccounts,
                 residentialLender: document.getElementById('residentialLender').value,
@@ -1127,116 +1103,87 @@
                 btl2Maturity: document.getElementById('btl2Maturity').value,
                 lastUpdated: new Date().toISOString()
             };
-
-            database.ref('users/' + currentUser.uid + '/financialData').set(data)
-                .then(() => {
-                    updateSyncStatus('Data saved to Firebase ✓', '🟢');
-                    isSaving = false;
-                })
-                .catch((error) => {
-                    console.error('Save error:', error);
-                    updateSyncStatus('Save error - check console', '🔴');
-                    isSaving = false;
-                });
-        }
-
-        function loadUserData() {
-            if (!currentUser) return;
-
-            database.ref('users/' + currentUser.uid + '/financialData').once('value')
-                .then((snapshot) => {
-                    if (snapshot.exists()) {
-                        const data = snapshot.val();
-                        loadRemoteData(data);
-                        updateSyncStatus('Data loaded from Firebase ✓', '🟢');
-                    } else {
-                        updateSyncStatus('No saved data found - using defaults', '🟡');
-                        renderSavingsAccounts();
-                        recalculate();
-                    }
-                })
-                .catch((error) => {
-                    console.error('Load error:', error);
-                    updateSyncStatus('Load error - check console', '🔴');
-                });
-        }
-
-        function loadRemoteData(data) {
-            savingsAccounts = data.savingsAccounts || savingsAccounts;
-            document.getElementById('residentialLender').value = data.residentialLender || 'Your Bank Name';
-            document.getElementById('residentialOriginal').value = data.residentialOriginal || '450000';
-            document.getElementById('residentialBalance').value = data.residentialBalance || '250000';
-            document.getElementById('residentialRate').value = data.residentialRate || '4.75';
-            document.getElementById('residentialTerm').value = data.residentialTerm || '25';
-            document.getElementById('residentialMaturity').value = data.residentialMaturity || '2050-12-31';
-            document.getElementById('btl1Lender').value = data.btl1Lender || 'Your Bank Name';
-            document.getElementById('btl1Original').value = data.btl1Original || '200000';
-            document.getElementById('btl1Balance').value = data.btl1Balance || '180000';
-            document.getElementById('btl1Rate').value = data.btl1Rate || '5.25';
-            document.getElementById('btl1Maturity').value = data.btl1Maturity || '2035-09-30';
-            document.getElementById('btl2Lender').value = data.btl2Lender || 'Your Bank Name';
-            document.getElementById('btl2Original').value = data.btl2Original || '150000';
-            document.getElementById('btl2Balance').value = data.btl2Balance || '150000';
-            document.getElementById('btl2Rate').value = data.btl2Rate || '5.10';
-            document.getElementById('btl2Maturity').value = data.btl2Maturity || '2038-03-31';
-            renderSavingsAccounts();
-            recalculate();
-        }
-
-        function resetUI() {
-            savingsAccounts = [
-                { name: 'Premium Savings Account', institution: 'Your Bank Name', balance: 45000, rate: 5.15, notes: 'ISA - Tax Free' },
-                { name: 'Standard Savings', institution: 'Your Bank Name', balance: 12500, rate: 3.50, notes: 'Regular Saver' },
-                { name: 'Money Market Fund', institution: 'Your Bank Name', balance: 8750, rate: 4.25, notes: 'Short-term parking' }
-            ];
-            document.getElementById('residentialLender').value = 'Your Bank Name';
-            document.getElementById('residentialOriginal').value = '450000';
-            document.getElementById('residentialBalance').value = '250000';
-            document.getElementById('residentialRate').value = '4.75';
-            document.getElementById('residentialTerm').value = '25';
-            document.getElementById('residentialMaturity').value = '2050-12-31';
-            document.getElementById('btl1Lender').value = 'Your Bank Name';
-            document.getElementById('btl1Original').value = '200000';
-            document.getElementById('btl1Balance').value = '180000';
-            document.getElementById('btl1Rate').value = '5.25';
-            document.getElementById('btl1Maturity').value = '2035-09-30';
-            document.getElementById('btl2Lender').value = 'Your Bank Name';
-            document.getElementById('btl2Original').value = '150000';
-            document.getElementById('btl2Balance').value = '150000';
-            document.getElementById('btl2Rate').value = '5.10';
-            document.getElementById('btl2Maturity').value = '2038-03-31';
-            renderSavingsAccounts();
-            recalculate();
-        }
-
-        // Add save triggers to all mortgage input fields
-        function attachSaveListeners() {
-            const inputs = document.querySelectorAll('input[type="text"]:not([onchange]), input[type="number"]:not([onchange]), input[type="date"]');
-            inputs.forEach(input => {
-                if (!input.onchange) {
-                    input.addEventListener('change', saveData);
+            
+            // Always save to localStorage as fallback
+            localStorage.setItem('financialDashboard', JSON.stringify(data));
+            
+            // If Firebase is connected and user is logged in, save to remote database
+            if (database && userUID && isUserLoggedIn) {
+                try {
+                    isSyncing = true;
+                    await database.ref('users/' + userUID + '/financialData').set(data);
+                    lastSyncTime = new Date();
+                    updateSyncStatus('Synced to Firebase ✓', '🟢');
+                    setTimeout(() => {
+                        if (new Date() - lastSyncTime > 2000) {
+                            updateSyncStatus('Connected to Firebase ✓', '🟢');
+                        }
+                    }, 2000);
+                } catch (error) {
+                    console.error('Error saving to Firebase:', error);
+                    updateSyncStatus('Saved locally only ⚠️', '🟡');
+                } finally {
+                    isSyncing = false;
                 }
+            }
+        }
+
+        function loadData() {
+            // First try to load from localStorage (instant)
+            const saved = localStorage.getItem('financialDashboard');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    loadRemoteData(data);
+                } catch (e) {
+                    console.error('Error loading saved data:', e);
+                }
+            }
+        }
+
+        // Add auto-save to input fields
+        function attachSaveListeners() {
+            const inputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"]');
+            inputs.forEach(input => {
+                input.addEventListener('change', saveData);
             });
         }
 
-        // Monitor auth state
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                currentUser = user;
-                updateAuthUI();
-            } else {
-                currentUser = null;
-                updateAuthUI();
-            }
-        });
-
         // Initialize on load
         window.addEventListener('load', () => {
-            updateSyncStatus('Ready to sign in', '🟡');
+            // Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyC6GXHFRwQ4LWVY5sPCKpkAh9MBXyWmVmI",
+                authDomain: "financial-dashboard-6d9b2.firebaseapp.com",
+                databaseURL: "https://financial-dashboard-6d9b2-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "financial-dashboard-6d9b2",
+                storageBucket: "financial-dashboard-6d9b2.firebasestorage.app",
+                messagingSenderId: "378634305912",
+                appId: "1:378634305912:web:3421c7067c5c438c87c88d"
+            };
+            
+            initializeFirebase(firebaseConfig);
+            initializeGoogleSignIn();
+            
+            loadData();
             renderSavingsAccounts();
             recalculate();
             attachSaveListeners();
         });
+
+        // Override the render and recalculate functions to save after updates
+        const originalRenderSavings = renderSavingsAccounts;
+        renderSavingsAccounts = function() {
+            originalRenderSavings();
+            attachSaveListeners();
+            saveData();
+        };
+
+        const originalRecalculate = recalculate;
+        recalculate = function() {
+            originalRecalculate();
+            saveData();
+        };
     </script>
 </body>
 </html>
