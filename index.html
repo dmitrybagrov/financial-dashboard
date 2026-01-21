@@ -9,6 +9,9 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23208080' width='100' height='100'/><text x='50' y='70' font-size='80' text-anchor='middle'>💰</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23208080' width='180' height='180'/><text x='90' y='130' font-size='120' text-anchor='middle'>💰</text></svg>">
     <title>Financial Dashboard - Savings & Mortgages</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -385,6 +388,9 @@
         <header>
             <h1>💰 Financial Dashboard</h1>
             <p class="subtitle">Track your savings, mortgages, and net worth</p>
+            <div id="syncStatus" style="margin-top: 10px; padding: 10px; border-radius: 6px; background: #e8f4f8; font-size: 12px; color: #1a1a1a;">
+                <span id="syncIndicator">⚪</span> <span id="syncText">Setting up Firebase...</span>
+            </div>
         </header>
 
         <div class="nav-tabs">
@@ -959,8 +965,82 @@
             }
         }
 
-        // LocalStorage persistence
-        function saveData() {
+        // Firebase Configuration & Sync
+        let firebaseApp = null;
+        let database = null;
+        let auth = null;
+        let userUID = null;
+        let isSyncing = false;
+        let lastSyncTime = null;
+        let remoteData = null;
+
+        function updateSyncStatus(status, indicator) {
+            document.getElementById('syncText').textContent = status;
+            document.getElementById('syncIndicator').textContent = indicator;
+        }
+
+        async function initializeFirebase(config) {
+            try {
+                firebaseApp = firebase.initializeApp(config);
+                database = firebase.database();
+                auth = firebase.auth();
+                updateSyncStatus('Authenticating...', '🔄');
+                
+                // Sign in anonymously
+                await auth.signInAnonymously();
+                userUID = auth.currentUser.uid;
+                updateSyncStatus('Connected to Firebase ✓', '🟢');
+                
+                // Listen for real-time updates
+                startListeningToRemoteData();
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                updateSyncStatus('Firebase setup failed - using local storage', '⚠️');
+            }
+        }
+
+        function startListeningToRemoteData() {
+            if (!database || !userUID) return;
+            
+            database.ref('users/' + userUID + '/financialData').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    remoteData = snapshot.val();
+                    // Only update UI if this is from server, not from our own write
+                    if (!isSyncing) {
+                        loadRemoteData(remoteData);
+                    }
+                }
+            });
+        }
+
+        function loadRemoteData(data) {
+            try {
+                savingsAccounts = data.savingsAccounts || savingsAccounts;
+                document.getElementById('residentialLender').value = data.residentialLender || 'Your Bank Name';
+                document.getElementById('residentialOriginal').value = data.residentialOriginal || '450000';
+                document.getElementById('residentialBalance').value = data.residentialBalance || '250000';
+                document.getElementById('residentialRate').value = data.residentialRate || '4.75';
+                document.getElementById('residentialTerm').value = data.residentialTerm || '25';
+                document.getElementById('residentialMaturity').value = data.residentialMaturity || '2050-12-31';
+                document.getElementById('btl1Lender').value = data.btl1Lender || 'Your Bank Name';
+                document.getElementById('btl1Original').value = data.btl1Original || '200000';
+                document.getElementById('btl1Balance').value = data.btl1Balance || '180000';
+                document.getElementById('btl1Rate').value = data.btl1Rate || '5.25';
+                document.getElementById('btl1Maturity').value = data.btl1Maturity || '2035-09-30';
+                document.getElementById('btl2Lender').value = data.btl2Lender || 'Your Bank Name';
+                document.getElementById('btl2Original').value = data.btl2Original || '150000';
+                document.getElementById('btl2Balance').value = data.btl2Balance || '150000';
+                document.getElementById('btl2Rate').value = data.btl2Rate || '5.10';
+                document.getElementById('btl2Maturity').value = data.btl2Maturity || '2038-03-31';
+                renderSavingsAccounts();
+                recalculate();
+                attachSaveListeners();
+            } catch (e) {
+                console.error('Error loading remote data:', e);
+            }
+        }
+
+        async function saveData() {
             const data = {
                 savingsAccounts: savingsAccounts,
                 residentialLender: document.getElementById('residentialLender').value,
@@ -978,33 +1058,41 @@
                 btl2Original: document.getElementById('btl2Original').value,
                 btl2Balance: document.getElementById('btl2Balance').value,
                 btl2Rate: document.getElementById('btl2Rate').value,
-                btl2Maturity: document.getElementById('btl2Maturity').value
+                btl2Maturity: document.getElementById('btl2Maturity').value,
+                lastUpdated: new Date().toISOString()
             };
+            
+            // Always save to localStorage as fallback
             localStorage.setItem('financialDashboard', JSON.stringify(data));
+            
+            // If Firebase is connected, save to remote database
+            if (database && userUID) {
+                try {
+                    isSyncing = true;
+                    await database.ref('users/' + userUID + '/financialData').set(data);
+                    lastSyncTime = new Date();
+                    updateSyncStatus('Synced to Firebase ✓', '🟢');
+                    setTimeout(() => {
+                        if (new Date() - lastSyncTime > 2000) {
+                            updateSyncStatus('Connected to Firebase ✓', '🟢');
+                        }
+                    }, 2000);
+                } catch (error) {
+                    console.error('Error saving to Firebase:', error);
+                    updateSyncStatus('Saved locally only ⚠️', '🟡');
+                } finally {
+                    isSyncing = false;
+                }
+            }
         }
 
         function loadData() {
+            // First try to load from localStorage (instant)
             const saved = localStorage.getItem('financialDashboard');
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
-                    savingsAccounts = data.savingsAccounts || savingsAccounts;
-                    document.getElementById('residentialLender').value = data.residentialLender || 'Your Bank Name';
-                    document.getElementById('residentialOriginal').value = data.residentialOriginal || '450000';
-                    document.getElementById('residentialBalance').value = data.residentialBalance || '250000';
-                    document.getElementById('residentialRate').value = data.residentialRate || '4.75';
-                    document.getElementById('residentialTerm').value = data.residentialTerm || '25';
-                    document.getElementById('residentialMaturity').value = data.residentialMaturity || '2050-12-31';
-                    document.getElementById('btl1Lender').value = data.btl1Lender || 'Your Bank Name';
-                    document.getElementById('btl1Original').value = data.btl1Original || '200000';
-                    document.getElementById('btl1Balance').value = data.btl1Balance || '180000';
-                    document.getElementById('btl1Rate').value = data.btl1Rate || '5.25';
-                    document.getElementById('btl1Maturity').value = data.btl1Maturity || '2035-09-30';
-                    document.getElementById('btl2Lender').value = data.btl2Lender || 'Your Bank Name';
-                    document.getElementById('btl2Original').value = data.btl2Original || '150000';
-                    document.getElementById('btl2Balance').value = data.btl2Balance || '150000';
-                    document.getElementById('btl2Rate').value = data.btl2Rate || '5.10';
-                    document.getElementById('btl2Maturity').value = data.btl2Maturity || '2038-03-31';
+                    loadRemoteData(data);
                 } catch (e) {
                     console.error('Error loading saved data:', e);
                 }
@@ -1021,6 +1109,16 @@
 
         // Initialize on load
         window.addEventListener('load', () => {
+            // Check for Firebase config in URL or use demo mode
+            const urlParams = new URLSearchParams(window.location.search);
+            const firebaseConfig = window.FIREBASE_CONFIG;
+            
+            if (firebaseConfig) {
+                initializeFirebase(firebaseConfig);
+            } else {
+                updateSyncStatus('⚠️ No Firebase config found - local storage only', '🟡');
+            }
+            
             loadData();
             renderSavingsAccounts();
             recalculate();
