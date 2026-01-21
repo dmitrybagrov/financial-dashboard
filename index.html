@@ -1108,7 +1108,12 @@
                 appId: "1:378634305912:web:3421c7067c5c438c87c88d"
             };
             
-            initializeFirebase(firebaseConfig);
+            try {
+                initializeFirebase(firebaseConfig);
+            } catch (error) {
+                console.error('Firebase initialization failed:', error);
+                updateSyncStatus('Using local storage only', '⚠️');
+            }
             
             loadData();
             renderSavingsAccounts();
