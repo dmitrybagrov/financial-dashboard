@@ -1097,15 +1097,18 @@
 
         // Initialize on load
         window.addEventListener('load', () => {
-            // Check for Firebase config in URL or use demo mode
-            const urlParams = new URLSearchParams(window.location.search);
-            const firebaseConfig = window.FIREBASE_CONFIG;
+            // Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyC6GXHFRwQ4LWVY5sPCKpkAh9MBXyWmVmI",
+                authDomain: "financial-dashboard-6d9b2.firebaseapp.com",
+                databaseURL: "https://financial-dashboard-6d9b2-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "financial-dashboard-6d9b2",
+                storageBucket: "financial-dashboard-6d9b2.firebasestorage.app",
+                messagingSenderId: "378634305912",
+                appId: "1:378634305912:web:3421c7067c5c438c87c88d"
+            };
             
-            if (firebaseConfig) {
-                initializeFirebase(firebaseConfig);
-            } else {
-                updateSyncStatus('⚠️ No Firebase config found - local storage only', '🟡');
-            }
+            initializeFirebase(firebaseConfig);
             
             loadData();
             renderSavingsAccounts();
