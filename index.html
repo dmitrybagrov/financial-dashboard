@@ -1065,18 +1065,23 @@
                     
                     window.savingsAccounts[index][field] = value;
                     
-                    // Update the interest displays for this account
+                    // Re-render to update interest displays
                     if (field === 'balance' || field === 'rate') {
-                        const account = window.savingsAccounts[index];
-                        const monthlyInterest = calculateSavingsInterest(account.balance, account.rate);
-                        const annualInterest = monthlyInterest * 12;
+                        const currentFocus = document.activeElement;
+                        const focusIndex = currentFocus?.dataset?.index;
+                        const focusField = currentFocus?.dataset?.field;
                         
-                        const row = this.closest('tr');
-                        const monthlySpan = row.querySelector('.monthly-interest');
-                        const annualSpan = row.querySelector('.annual-interest');
+                        renderSavingsAccounts();
                         
-                        if (monthlySpan) monthlySpan.textContent = '£' + formatCurrency(monthlyInterest);
-                        if (annualSpan) annualSpan.textContent = '£' + formatCurrency(annualInterest);
+                        // Restore focus if it was on an account field
+                        if (focusIndex && focusField) {
+                            const inputs = document.querySelectorAll('.account-field');
+                            inputs.forEach(input => {
+                                if (input.dataset.index === focusIndex && input.dataset.field === focusField) {
+                                    input.focus();
+                                }
+                            });
+                        }
                     }
                     
                     window.recalculate();
@@ -1308,9 +1313,14 @@
         function attachSaveListeners() {
             const inputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"]');
             inputs.forEach(input => {
-                input.removeEventListener('change', saveData);
-                input.addEventListener('change', saveData);
+                input.removeEventListener('change', handleInputChange);
+                input.addEventListener('change', handleInputChange);
             });
+        }
+        
+        function handleInputChange() {
+            saveData();
+            window.recalculate();
         }
     </script>
 </body>
