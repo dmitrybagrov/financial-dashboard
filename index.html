@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Dashboard - Savings & Mortgages</title>
+    <style>
+        :root {
+            --color-primary: #208080;
+            --color-primary-hover: #1a6b6b;
+            --color-bg: #f5f5f5;
+            --color-surface: #ffffff;
+            --color-text: #1a1a1a;
+            --color-text-secondary: #666;
+            --color-border: #ddd;
+            --color-success: #218055;
+            --color-warning: #a84d2f;
+            --color-error: #c0152f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--color-surface);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--color-bg);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .sync-status {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sync-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--color-success);
+        }
+
+        .sync-indicator.syncing {
+            background: var(--color-warning);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            font-size: 14px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: var(--color-surface);
+            padding: 10px;
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #f0f0f0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            background: var(--color-surface);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--color-primary);
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--color-text-secondary);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--color-bg);
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            background: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--color-primary);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-card {
+            background: var(--color-bg);
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .summary-card.success {
+            border-left-color: var(--color-success);
+        }
+
+        .summary-card.warning {
+            border-left-color: var(--color-warning);
+        }
+
+        .card-label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .card-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .currency {
+            color: var(--color-primary);
+        }
+
+        .positive {
+            color: var(--color-success);
+        }
+
+        .negative {
+            color: var(--color-error);
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-bg);
+        }
+
+        .btn-danger {
+            background: var(--color-error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #a01025;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .account-card {
+            background: var(--color-bg);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid var(--color-border);
+        }
+
+        .account-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .account-name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .account-institution {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        .account-balance {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin: 10px 0;
+        }
+
+        .account-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .auth-modal {
+            background: var(--color-surface);
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .auth-modal h2 {
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .auth-modal p {
+            color: var(--color-text-secondary);
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .auth-divider {
+            text-align: center;
+            margin: 20px 0;
+            color: var(--color-text-secondary);
+            font-size: 13px;
+            position: relative;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: var(--color-border);
+        }
+
+        .auth-divider::before {
+            left: 0;
+        }
+
+        .auth-divider::after {
+            right: 0;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .auth-toggle a {
+            color: var(--color-primary);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: #fee;
+            border: 1px solid var(--color-error);
+            color: var(--color-error);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .form-group {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-modal">
+            <h2>Financial Dashboard</h2>
+            <p>Sign in to access your financial data across all devices</p>
+            
+            <div id="errorMessage" class="error-message hidden"></div>
+            
+            <button onclick="signInWithGoogle()" class="btn btn-primary" style="width: 100%;">
+                <span>Continue with Google</span>
+            </button>
+            
+            <div class="auth-divider">or</div>
+            
+            <div id="emailSignInForm" class="auth-form">
+                <input type="email" id="emailInput" placeholder="Email" />
+                <input type="password" id="passwordInput" placeholder="Password" />
+                <button onclick="emailSignIn()" class="btn btn-primary">Sign In</button>
+            </div>
+            
+            <div class="auth-toggle">
+                <span id="authToggleText">Don't have an account?</span>
+                <a id="authToggleLink" onclick="toggleAuthMode()">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="appContainer" class="container hidden">
+        <header>
+            <div class="header-left">
+                <h1>Financial Dashboard</h1>
+                <p class="subtitle">Track your savings and mortgages</p>
+            </div>
+            <div class="header-right">
+                <div class="sync-status">
+                    <div id="syncIndicator" class="sync-indicator"></div>
+                    <span id="syncText">Synced</span>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar"></div>
+                    <span id="userName"></span>
+                </div>
+                <button onclick="signOut()" class="btn btn-secondary">Sign Out</button>
+            </div>
+        </header>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('savings')">Savings</button>
+            <button class="tab-btn" onclick="switchTab('mortgages')">Mortgages</button>
+        </div>
+
+        <div id="dashboardTab" class="tab-content active">
+            <div class="section">
+                <h2 class="section-title">Financial Overview</h2>
+                <div class="summary-grid">
+                    <div class="summary-card success">
+                        <div class="card-label">Total Savings</div>
+                        <div class="card-value currency" id="totalSavingsValue">£0.00</div>
+                    </div>
+                    <div class="summary-card warning">
+                        <div class="card-label">Total Debt</div>
+                        <div class="card-value currency" id="totalDebt">£0.00</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Monthly Payments</div>
+                        <div class="card-value currency" id="totalPayments">£0.00</div>
+                    </div>
+                    <div class="summary-card" id="netWorth">
+                        <div class="card-label">Net Worth</div>
+                        <div class="card-value" id="netWorthValue">£0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Savings Accounts Summary</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Account Name</th>
+                            <th>Balance</th>
+                            <th>Interest Rate</th>
+                            <th>Monthly Interest</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="savingsSummaryTable"></tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Mortgages Summary</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Balance</th>
+                            <th>Interest Rate</th>
+                            <th>Monthly Payment</th>
+                            <th>Maturity Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mortgageSummaryTable"></tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <p id="lastUpdated" style="color: var(--color-text-secondary); font-size: 13px;"></p>
+            </div>
+        </div>
+
+        <div id="savingsTab" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Savings Accounts</h2>
+                <div id="savingsAccountsList"></div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="addSavingsAccount()">Add Account</button>
+                    <button class="btn btn-secondary" onclick="resetSavings()">Reset to Defaults</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Savings Summary</h2>
+                <div class="summary-grid">
+                    <div class="summary-card success">
+                        <div class="card-label">Total Balance</div>
+                        <div class="card-value currency" id="totalSavings">£0.00</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Monthly Interest</div>
+                        <div class="card-value currency" id="monthlyInterest">£0.00</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Annual Interest</div>
+                        <div class="card-value currency" id="annualInterest">£0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="mortgagesTab" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Residential Mortgage (Repayment)</h2>
+                <div class="form-group">
+                    <div>
+                        <label>Lender</label>
+                        <input type="text" id="residentialLender" value="Your Bank Name">
+                    </div>
+                    <div>
+                        <label>Original Amount (£)</label>
+                        <input type="number" id="residentialOriginal" value="450000">
+                    </div>
+                    <div>
+                        <label>Current Balance (£)</label>
+                        <input type="number" id="residentialBalance" value="250000">
+                    </div>
+                    <div>
+                        <label>Interest Rate (%)</label>
+                        <input type="number" step="0.01" id="residentialRate" value="4.75">
+                    </div>
+                    <div>
+                        <label>Term Remaining (years)</label>
+                        <input type="number" id="residentialTerm" value="25">
+                    </div>
+                    <div>
+                        <label>Maturity Date</label>
+                        <input type="date" id="residentialMaturity" value="2050-12-31">
+                    </div>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="card-label">Monthly Payment</div>
+                        <div class="card-value currency" id="monthlyPayment">£0.00</div>
+                    </div>
+                    <div class="summary-card warning">
+                        <div class="card-label">Annual Interest</div>
+                        <div class="card-value currency" id="annualResInterest">£0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Buy-to-Let 1 (Interest Only)</h2>
+                <div class="form-group">
+                    <div>
+                        <label>Lender</label>
+                        <input type="text" id="btl1Lender" value="Your Bank Name">
+                    </div>
+                    <div>
+                        <label>Original Amount (£)</label>
+                        <input type="number" id="btl1Original" value="200000">
+                    </div>
+                    <div>
+                        <label>Current Balance (£)</label>
+                        <input type="number" id="btl1Balance" value="180000">
+                    </div>
+                    <div>
+                        <label>Interest Rate (%)</label>
+                        <input type="number" step="0.01" id="btl1Rate" value="5.25">
+                    </div>
+                    <div>
+                        <label>Maturity Date</label>
+                        <input type="date" id="btl1Maturity" value="2035-09-30">
+                    </div>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="card-label">Monthly Payment</div>
+                        <div class="card-value currency" id="btl1MonthlyPayment">£0.00</div>
+                    </div>
+                    <div class="summary-card warning">
+                        <div class="card-label">Annual Interest</div>
+                        <div class="card-value currency" id="btl1AnnualInterest">£0.00</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Capital to Repay</div>
+                        <div class="card-value currency" id="btl1Capital">£0.00</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Years Until Maturity</div>
+                        <div class="card-value" id="btl1Years">0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Annual Savings Needed</div>
+                        <div class="card-value currency" id="btl1AnnualPlan">£0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Buy-to-Let 2 (Interest Only)</h2>
+                <div class="form-group">
+                    <div>
+                        <label>Lender</label>
+                        <input type="text" id="btl2Lender" value="Your Bank Name">
+                    </div>
+                    <div>
+                        <label>Original Amount (£)</label>
+                        <input type="number" id="btl2Original" value="150000">
+                    </div>
+                    <div>
+                        <label>Current Balance (£)</label>
+                        <input type="number" id="btl2Balance" value="150000">
+                    </div>
+                    <div>
+                        <label>Interest Rate (%)</label>
+                        <input type="number" step="0.01" id="btl2Rate" value="5.10">
+                    </div>
+                    <div>
+                        <label>Maturity Date</label>
+                        <input type="date" id="btl2Maturity" value="2038-03-31">
+                    </div>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="card-label">Monthly Payment</div>
+                        <div class="card-value currency" id="btl2MonthlyPayment">£0.00</div>
+                    </div>
+                    <div class="summary-card warning">
+                        <div class="card-label">Annual Interest</div>
+                        <div class="card-value currency" id="btl2AnnualInterest">£0.00</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Capital to Repay</div>
+                        <div class="card-value currency" id="btl2Capital">£0.00</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Years Until Maturity</div>
+                        <div class="card-value" id="btl2Years">0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Annual Savings Needed</div>
+                        <div class="card-value currency" id="btl2AnnualPlan">£0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Total Mortgage Obligations</h2>
+                <div class="summary-grid">
+                    <div class="summary-card warning">
+                        <div class="card-label">Total Monthly Payment</div>
+                        <div class="card-value currency" id="totalMortgagePayment">£0.00</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-label">Total Outstanding</div>
+                        <div class="card-value currency" id="netLiabilities">£0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut as firebaseSignOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let isSignUp = false;
+        let savingsAccounts = [
+            { name: 'Premium Savings Account', institution: 'Your Bank Name', balance: 45000, rate: 5.15, notes: 'ISA - Tax Free' },
+            { name: 'Standard Savings', institution: 'Your Bank Name', balance: 12500, rate: 3.50, notes: 'Regular Saver' },
+            { name: 'Money Market Fund', institution: 'Your Bank Name', balance: 8750, rate: 4.25, notes: 'Short-term parking' }
+        ];
+
+        window.toggleAuthMode = function() {
+            isSignUp = !isSignUp;
+            document.getElementById('authToggleText').textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
+            document.getElementById('authToggleLink').textContent = isSignUp ? 'Sign in' : 'Sign up';
+        };
+
+        window.signInWithGoogle = async function() {
+            try {
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                showError(error.message);
+            }
+        };
+
+        window.emailSignIn = async function() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+
+            if (!email || !password) {
+                showError('Please enter email and password');
+                return;
+            }
+
+            try {
+                if (isSignUp) {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        };
+
+        window.signOut = async function() {
+            try {
+                await firebaseSignOut(auth);
+            } catch (error) {
+                console.error('Sign out error:', error);
+            }
+        };
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.classList.remove('hidden');
+            setTimeout(() => errorEl.classList.add('hidden'), 5000);
+        }
+
+        function setSyncStatus(syncing) {
+            const indicator = document.getElementById('syncIndicator');
+            const text = document.getElementById('syncText');
+            if (syncing) {
+                indicator.classList.add('syncing');
+                text.textContent = 'Syncing...';
+            } else {
+                indicator.classList.remove('syncing');
+                text.textContent = 'Synced';
+            }
+        }
+
+        async function saveToFirestore(data) {
+            if (!currentUser) return;
+            
+            setSyncStatus(true);
+            try {
+                await setDoc(doc(db, 'users', currentUser.uid), {
+                    data: data,
+                    updatedAt: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error('Save error:', error);
+            } finally {
+                setSyncStatus(false);
+            }
+        }
+
+        async function loadFromFirestore() {
+            if (!currentUser) return null;
+            
+            try {
+                const docRef = doc(db, 'users', currentUser.uid);
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    return docSnap.data().data;
+                } else {
+                    const localData = loadFromLocalStorage();
+                    if (localData) {
+                        await saveToFirestore(localData);
+                        return localData;
+                    }
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                return loadFromLocalStorage();
+            }
+            return null;
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('financialDashboard');
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error('Error loading from localStorage:', e);
+                }
+            }
+            return null;
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('authOverlay').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                
+                const displayName = user.displayName || user.email.split('@')[0];
+                document.getElementById('userName').textContent = displayName;
+                document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+                
+                const data = await loadFromFirestore();
+                if (data) {
+                    loadData(data);
+                }
+                renderSavingsAccounts();
+                recalculate();
+                attachSaveListeners();
+
+                const docRef = doc(db, 'users', user.uid);
+                onSnapshot(docRef, (doc) => {
+                    if (doc.exists()) {
+                        const data = doc.data().data;
+                        loadData(data);
+                        renderSavingsAccounts();
+                        recalculate();
+                    }
+                });
+            } else {
+                currentUser = null;
+                document.getElementById('authOverlay').classList.remove('hidden');
+                document.getElementById('appContainer').classList.add('hidden');
+            }
+        });
+
+        window.switchTab = function(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        };
+
+        window.addSavingsAccount = function() {
+            savingsAccounts.push({
+                name: 'New Account',
+                institution: 'Bank Name',
+                balance: 0,
+                rate: 0,
+                notes: ''
+            });
+            renderSavingsAccounts();
+            recalculate();
+        };
+
+        window.deleteSavingsAccount = function(index) {
+            if (confirm('Delete this account?')) {
+                savingsAccounts.splice(index, 1);
+                renderSavingsAccounts();
+                recalculate();
+            }
+        };
+
+        window.renderSavingsAccounts = function() {
+            const container = document.getElementById('savingsAccountsList');
+            container.innerHTML = '';
+
+            savingsAccounts.forEach((account, index) => {
+                const monthlyInterest = calculateSavingsInterest(account.balance, account.rate);
+                const card = document.createElement('div');
+                card.className = 'account-card';
+                card.innerHTML = `
+                    <div class="account-header">
+                        <div>
+                            <input type="text" class="account-name" value="${account.name}" 
+                                onchange="savingsAccounts[${index}].name = this.value; recalculate();" 
+                                style="border: none; background: transparent; font-weight: 600; font-size: 15px; width: 100%; padding: 0;">
+                            <input type="text" class="account-institution" value="${account.institution}" 
+                                onchange="savingsAccounts[${index}].institution = this.value; recalculate();" 
+                                style="border: none; background: transparent; font-size: 12px; color: var(--color-text-secondary); width: 100%; padding: 0; margin-top: 2px;">
+                        </div>
+                        <button class="btn btn-danger" onclick="deleteSavingsAccount(${index})" style="padding: 6px 12px; font-size: 12px;">Delete</button>
+                    </div>
+                    <div class="account-balance">£${formatCurrency(account.balance)}</div>
+                    <div class="account-details">
+                        <div>
+                            <label>Balance (£)</label>
+                            <input type="number" value="${account.balance}" 
+                                onchange="savingsAccounts[${index}].balance = parseFloat(this.value) || 0; recalculate();">
+                        </div>
+                        <div>
+                            <label>Interest Rate (%)</label>
+                            <input type="number" step="0.01" value="${account.rate}" 
+                                onchange="savingsAccounts[${index}].rate = parseFloat(this.value) || 0; recalculate();">
+                        </div>
+                        <div>
+                            <label>Notes</label>
+                            <input type="text" value="${account.notes}" 
+                                onchange="savingsAccounts[${index}].notes = this.value; recalculate();">
+                        </div>
+                        <div style="display: flex; flex-direction: column; justify-content: center;">
+                            <div style="font-size: 11px; color: var(--color-text-secondary);">Monthly Interest</div>
+                            <div style="font-weight: 600; color: var(--color-success);">£${formatCurrency(monthlyInterest)}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        };
+
+        function calculateSavingsInterest(balance, rate) {
+            return balance * (rate / 100 / 12);
+        }
+
+        function formatCurrency(value) {
+            return value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        window.recalculate = function() {
+            let totalSavings = 0;
+            let monthlyInterest = 0;
+
+            savingsAccounts.forEach(account => {
+                totalSavings += account.balance;
+                monthlyInterest += calculateSavingsInterest(account.balance, account.rate);
+            });
+
+            const annualInterest = monthlyInterest * 12;
+
+            document.getElementById('totalSavings').textContent = '£' + formatCurrency(totalSavings);
+            document.getElementById('totalSavingsValue').textContent = '£' + formatCurrency(totalSavings);
+            document.getElementById('monthlyInterest').textContent = '£' + formatCurrency(monthlyInterest);
+            document.getElementById('annualInterest').textContent = '£' + formatCurrency(annualInterest);
+
+            const residentialBalance = parseFloat(document.getElementById('residentialBalance').value) || 0;
+            const residentialRate = parseFloat(document.getElementById('residentialRate').value) || 0;
+            const residentialTerm = parseFloat(document.getElementById('residentialTerm').value) || 25;
+            const monthlyRate = residentialRate / 100 / 12;
+            const numPayments = residentialTerm * 12;
+            let monthlyPayment = 0;
+
+            if (monthlyRate > 0) {
+                monthlyPayment = (residentialBalance * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+            }
+
+            const annualResInt = monthlyPayment * 12 - (residentialBalance / residentialTerm);
+
+            document.getElementById('monthlyPayment').textContent = formatCurrency(monthlyPayment);
+            document.getElementById('annualResInterest').textContent = formatCurrency(annualResInt);
+
+            const btl1Balance = parseFloat(document.getElementById('btl1Balance').value) || 0;
+            const btl1Rate = parseFloat(document.getElementById('btl1Rate').value) || 0;
+            const btl1MaturityDate = new Date(document.getElementById('btl1Maturity').value);
+            const btl1MonthlyPayment = btl1Balance * (btl1Rate / 100 / 12);
+            const btl1AnnualInt = btl1MonthlyPayment * 12;
+            const yearsUntilMaturity1 = Math.max(0, btl1MaturityDate.getFullYear() - new Date().getFullYear());
+
+            document.getElementById('btl1MonthlyPayment').textContent = formatCurrency(btl1MonthlyPayment);
+            document.getElementById('btl1AnnualInterest').textContent = formatCurrency(btl1AnnualInt);
+            document.getElementById('btl1Capital').textContent = formatCurrency(btl1Balance);
+            document.getElementById('btl1Years').textContent = yearsUntilMaturity1;
+            document.getElementById('btl1AnnualPlan').textContent = formatCurrency(yearsUntilMaturity1 > 0 ? btl1Balance / yearsUntilMaturity1 : 0);
+
+            const btl2Balance = parseFloat(document.getElementById('btl2Balance').value) || 0;
+            const btl2Rate = parseFloat(document.getElementById('btl2Rate').value) || 0;
+            const btl2MaturityDate = new Date(document.getElementById('btl2Maturity').value);
+            const btl2MonthlyPayment = btl2Balance * (btl2Rate / 100 / 12);
+            const btl2AnnualInt = btl2MonthlyPayment * 12;
+            const yearsUntilMaturity2 = Math.max(0, btl2MaturityDate.getFullYear() - new Date().getFullYear());
+
+            document.getElementById('btl2MonthlyPayment').textContent = formatCurrency(btl2MonthlyPayment);
+            document.getElementById('btl2AnnualInterest').textContent = formatCurrency(btl2AnnualInt);
+            document.getElementById('btl2Capital').textContent = formatCurrency(btl2Balance);
+            document.getElementById('btl2Years').textContent = yearsUntilMaturity2;
+            document.getElementById('btl2AnnualPlan').textContent = formatCurrency(yearsUntilMaturity2 > 0 ? btl2Balance / yearsUntilMaturity2 : 0);
+
+            const totalDebt = residentialBalance + btl1Balance + btl2Balance;
+            const totalPayments = monthlyPayment + btl1MonthlyPayment + btl2MonthlyPayment;
+            const netWorth = totalSavings - totalDebt;
+
+            document.getElementById('totalDebt').textContent = formatCurrency(totalDebt);
+            document.getElementById('totalPayments').textContent = formatCurrency(totalPayments);
+            document.getElementById('totalMortgagePayment').textContent = formatCurrency(totalPayments);
+            document.getElementById('netLiabilities').textContent = formatCurrency(totalDebt);
+            document.getElementById('netWorthValue').textContent = '£' + formatCurrency(netWorth);
+
+            const netWorthEl = document.getElementById('netWorth');
+            if (netWorth >= 0) {
+                netWorthEl.classList.remove('negative');
+                netWorthEl.classList.add('positive');
+            } else {
+                netWorthEl.classList.remove('positive');
+                netWorthEl.classList.add('negative');
+            }
+
+            updateSavingsSummaryTable();
+            updateMortgageSummaryTable();
+
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleString();
+            
+            saveData();
+        };
+
+        function updateSavingsSummaryTable() {
+            const tbody = document.getElementById('savingsSummaryTable');
+            tbody.innerHTML = '';
+
+            savingsAccounts.forEach(acc => {
+                const monthlyInt = calculateSavingsInterest(acc.balance, acc.rate);
+                const row = `
+                    <tr>
+                        <td>${acc.name}</td>
+                        <td>£${formatCurrency(acc.balance)}</td>
+                        <td>${acc.rate}%</td>
+                        <td>£${formatCurrency(monthlyInt)}</td>
+                        <td>${acc.notes}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function updateMortgageSummaryTable() {
+            const tbody = document.getElementById('mortgageSummaryTable');
+            tbody.innerHTML = '';
+
+            const residentialBalance = parseFloat(document.getElementById('residentialBalance').value) || 0;
+            const residentialRate = parseFloat(document.getElementById('residentialRate').value) || 0;
+            const residentialTerm = parseFloat(document.getElementById('residentialTerm').value) || 25;
+            const monthlyRate = residentialRate / 100 / 12;
+            const numPayments = residentialTerm * 12;
+            let monthlyPayment = 0;
+
+            if (monthlyRate > 0) {
+                monthlyPayment = (residentialBalance * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+            }
+
+            const btl1Balance = parseFloat(document.getElementById('btl1Balance').value) || 0;
+            const btl1Rate = parseFloat(document.getElementById('btl1Rate').value) || 0;
+            const btl1MonthlyPayment = btl1Balance * (btl1Rate / 100 / 12);
+
+            const btl2Balance = parseFloat(document.getElementById('btl2Balance').value) || 0;
+            const btl2Rate = parseFloat(document.getElementById('btl2Rate').value) || 0;
+            const btl2MonthlyPayment = btl2Balance * (btl2Rate / 100 / 12);
+
+            tbody.innerHTML = `
+                <tr>
+                    <td>Residential (Repayment)</td>
+                    <td>£${formatCurrency(residentialBalance)}</td>
+                    <td>${residentialRate}%</td>
+                    <td>£${formatCurrency(monthlyPayment)}</td>
+                    <td>${document.getElementById('residentialMaturity').value}</td>
+                </tr>
+                <tr>
+                    <td>Buy-to-Let 1 (Interest Only)</td>
+                    <td>£${formatCurrency(btl1Balance)}</td>
+                    <td>${btl1Rate}%</td>
+                    <td>£${formatCurrency(btl1MonthlyPayment)}</td>
+                    <td>${document.getElementById('btl1Maturity').value}</td>
+                </tr>
+                <tr>
+                    <td>Buy-to-Let 2 (Interest Only)</td>
+                    <td>£${formatCurrency(btl2Balance)}</td>
+                    <td>${btl2Rate}%</td>
+                    <td>£${formatCurrency(btl2MonthlyPayment)}</td>
+                    <td>${document.getElementById('btl2Maturity').value}</td>
+                </tr>
+            `;
+        }
+
+        window.resetSavings = function() {
+            if (confirm('Reset all savings accounts to defaults?')) {
+                savingsAccounts = [
+                    { name: 'Premium Savings Account', institution: 'Your Bank Name', balance: 45000, rate: 5.15, notes: 'ISA - Tax Free' },
+                    { name: 'Standard Savings', institution: 'Your Bank Name', balance: 12500, rate: 3.50, notes: 'Regular Saver' },
+                    { name: 'Money Market Fund', institution: 'Your Bank Name', balance: 8750, rate: 4.25, notes: 'Short-term parking' }
+                ];
+                renderSavingsAccounts();
+                recalculate();
+            }
+        };
+
+        function saveData() {
+            const data = {
+                savingsAccounts: savingsAccounts,
+                residentialLender: document.getElementById('residentialLender').value,
+                residentialOriginal: document.getElementById('residentialOriginal').value,
+                residentialBalance: document.getElementById('residentialBalance').value,
+                residentialRate: document.getElementById('residentialRate').value,
+                residentialTerm: document.getElementById('residentialTerm').value,
+                residentialMaturity: document.getElementById('residentialMaturity').value,
+                btl1Lender: document.getElementById('btl1Lender').value,
+                btl1Original: document.getElementById('btl1Original').value,
+                btl1Balance: document.getElementById('btl1Balance').value,
+                btl1Rate: document.getElementById('btl1Rate').value,
+                btl1Maturity: document.getElementById('btl1Maturity').value,
+                btl2Lender: document.getElementById('btl2Lender').value,
+                btl2Original: document.getElementById('btl2Original').value,
+                btl2Balance: document.getElementById('btl2Balance').value,
+                btl2Rate: document.getElementById('btl2Rate').value,
+                btl2Maturity: document.getElementById('btl2Maturity').value
+            };
+            localStorage.setItem('financialDashboard', JSON.stringify(data));
+            saveToFirestore(data);
+        }
+
+        function loadData(data) {
+            if (!data) return;
+            
+            savingsAccounts = data.savingsAccounts || savingsAccounts;
+            document.getElementById('residentialLender').value = data.residentialLender || 'Your Bank Name';
+            document.getElementById('residentialOriginal').value = data.residentialOriginal || '450000';
+            document.getElementById('residentialBalance').value = data.residentialBalance || '250000';
+            document.getElementById('residentialRate').value = data.residentialRate || '4.75';
+            document.getElementById('residentialTerm').value = data.residentialTerm || '25';
+            document.getElementById('residentialMaturity').value = data.residentialMaturity || '2050-12-31';
+            document.getElementById('btl1Lender').value = data.btl1Lender || 'Your Bank Name';
+            document.getElementById('btl1Original').value = data.btl1Original || '200000';
+            document.getElementById('btl1Balance').value = data.btl1Balance || '180000';
+            document.getElementById('btl1Rate').value = data.btl1Rate || '5.25';
+            document.getElementById('btl1Maturity').value = data.btl1Maturity || '2035-09-30';
+            document.getElementById('btl2Lender').value = data.btl2Lender || 'Your Bank Name';
+            document.getElementById('btl2Original').value = data.btl2Original || '150000';
+            document.getElementById('btl2Balance').value = data.btl2Balance || '150000';
+            document.getElementById('btl2Rate').value = data.btl2Rate || '5.10';
+            document.getElementById('btl2Maturity').value = data.btl2Maturity || '2038-03-31';
+        }
+
+        function attachSaveListeners() {
+            const inputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"]');
+            inputs.forEach(input => {
+                input.removeEventListener('change', saveData);
+                input.addEventListener('change', saveData);
+            });
+        }
+    </script>
+</body>
+</html>
