@@ -782,16 +782,14 @@
 
         // TODO: Replace this with your actual Firebase config from Firebase Console
         // Get it from: Project Settings > General > Your apps > Web app config
-
         const firebaseConfig = {
-          apiKey: "AIzaSyCxUS2oEI5Un3eapWgX5pf81KmncvQilqk",
-          authDomain: "finboard-e6010.firebaseapp.com",
-          projectId: "finboard-e6010",
-          storageBucket: "finboard-e6010.firebasestorage.app",
-          messagingSenderId: "706897102902",
-          appId: "1:706897102902:web:5cec50c0743e197c1eb097"
+            apiKey: "AIzaSyBXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890"
         };
-
 
         let app;
         try {
@@ -814,6 +812,8 @@
             { name: 'Standard Savings', institution: 'Your Bank Name', balance: 12500, rate: 3.50, notes: 'Regular Saver' },
             { name: 'Money Market Fund', institution: 'Your Bank Name', balance: 8750, rate: 4.25, notes: 'Short-term parking' }
         ];
+        
+        window.savingsAccounts = savingsAccounts;
 
         window.toggleAuthMode = function() {
             isSignUp = !isSignUp;
@@ -824,9 +824,19 @@
         window.signInWithGoogle = async function() {
             try {
                 const provider = new GoogleAuthProvider();
+                provider.setCustomParameters({
+                    prompt: 'select_account'
+                });
                 await signInWithPopup(auth, provider);
             } catch (error) {
-                showError(error.message);
+                if (error.code === 'auth/popup-closed-by-user') {
+                    showError('Sign-in cancelled');
+                } else if (error.code === 'auth/popup-blocked') {
+                    showError('Popup blocked. Please allow popups for this site.');
+                } else {
+                    showError(error.message);
+                }
+                console.error('Google sign-in error:', error);
             }
         };
 
@@ -981,7 +991,7 @@
         };
 
         window.addSavingsAccount = function() {
-            savingsAccounts.push({
+            window.savingsAccounts.push({
                 name: 'New Account',
                 institution: 'Bank Name',
                 balance: 0,
@@ -994,7 +1004,7 @@
 
         window.deleteSavingsAccount = function(index) {
             if (confirm('Delete this account?')) {
-                savingsAccounts.splice(index, 1);
+                window.savingsAccounts.splice(index, 1);
                 renderSavingsAccounts();
                 recalculate();
             }
@@ -1004,7 +1014,7 @@
             const container = document.getElementById('savingsAccountsList');
             container.innerHTML = '';
 
-            savingsAccounts.forEach((account, index) => {
+            window.savingsAccounts.forEach((account, index) => {
                 const monthlyInterest = calculateSavingsInterest(account.balance, account.rate);
                 const card = document.createElement('div');
                 card.className = 'account-card';
@@ -1012,30 +1022,30 @@
                     <div class="account-header">
                         <div>
                             <input type="text" class="account-name" value="${account.name}" 
-                                onchange="savingsAccounts[${index}].name = this.value; recalculate();" 
+                                onchange="window.savingsAccounts[${index}].name = this.value; window.recalculate();" 
                                 style="border: none; background: transparent; font-weight: 600; font-size: 15px; width: 100%; padding: 0;">
                             <input type="text" class="account-institution" value="${account.institution}" 
-                                onchange="savingsAccounts[${index}].institution = this.value; recalculate();" 
+                                onchange="window.savingsAccounts[${index}].institution = this.value; window.recalculate();" 
                                 style="border: none; background: transparent; font-size: 12px; color: var(--color-text-secondary); width: 100%; padding: 0; margin-top: 2px;">
                         </div>
-                        <button class="btn btn-danger" onclick="deleteSavingsAccount(${index})" style="padding: 6px 12px; font-size: 12px;">Delete</button>
+                        <button class="btn btn-danger" onclick="window.deleteSavingsAccount(${index})" style="padding: 6px 12px; font-size: 12px;">Delete</button>
                     </div>
                     <div class="account-balance">£${formatCurrency(account.balance)}</div>
                     <div class="account-details">
                         <div>
                             <label>Balance (£)</label>
                             <input type="number" value="${account.balance}" 
-                                onchange="savingsAccounts[${index}].balance = parseFloat(this.value) || 0; recalculate();">
+                                onchange="window.savingsAccounts[${index}].balance = parseFloat(this.value) || 0; window.recalculate();">
                         </div>
                         <div>
                             <label>Interest Rate (%)</label>
                             <input type="number" step="0.01" value="${account.rate}" 
-                                onchange="savingsAccounts[${index}].rate = parseFloat(this.value) || 0; recalculate();">
+                                onchange="window.savingsAccounts[${index}].rate = parseFloat(this.value) || 0; window.recalculate();">
                         </div>
                         <div>
                             <label>Notes</label>
                             <input type="text" value="${account.notes}" 
-                                onchange="savingsAccounts[${index}].notes = this.value; recalculate();">
+                                onchange="window.savingsAccounts[${index}].notes = this.value; window.recalculate();">
                         </div>
                         <div style="display: flex; flex-direction: column; justify-content: center;">
                             <div style="font-size: 11px; color: var(--color-text-secondary);">Monthly Interest</div>
@@ -1059,7 +1069,7 @@
             let totalSavings = 0;
             let monthlyInterest = 0;
 
-            savingsAccounts.forEach(account => {
+            window.savingsAccounts.forEach(account => {
                 totalSavings += account.balance;
                 monthlyInterest += calculateSavingsInterest(account.balance, account.rate);
             });
@@ -1144,7 +1154,7 @@
             const tbody = document.getElementById('savingsSummaryTable');
             tbody.innerHTML = '';
 
-            savingsAccounts.forEach(acc => {
+            window.savingsAccounts.forEach(acc => {
                 const monthlyInt = calculateSavingsInterest(acc.balance, acc.rate);
                 const row = `
                     <tr>
@@ -1209,7 +1219,7 @@
 
         window.resetSavings = function() {
             if (confirm('Reset all savings accounts to defaults?')) {
-                savingsAccounts = [
+                window.savingsAccounts = [
                     { name: 'Premium Savings Account', institution: 'Your Bank Name', balance: 45000, rate: 5.15, notes: 'ISA - Tax Free' },
                     { name: 'Standard Savings', institution: 'Your Bank Name', balance: 12500, rate: 3.50, notes: 'Regular Saver' },
                     { name: 'Money Market Fund', institution: 'Your Bank Name', balance: 8750, rate: 4.25, notes: 'Short-term parking' }
@@ -1221,7 +1231,7 @@
 
         function saveData() {
             const data = {
-                savingsAccounts: savingsAccounts,
+                savingsAccounts: window.savingsAccounts,
                 residentialLender: document.getElementById('residentialLender').value,
                 residentialOriginal: document.getElementById('residentialOriginal').value,
                 residentialBalance: document.getElementById('residentialBalance').value,
@@ -1249,7 +1259,7 @@
         function loadData(data) {
             if (!data) return;
             
-            savingsAccounts = data.savingsAccounts || savingsAccounts;
+            window.savingsAccounts = data.savingsAccounts || window.savingsAccounts;
             document.getElementById('residentialLender').value = data.residentialLender || 'Your Bank Name';
             document.getElementById('residentialOriginal').value = data.residentialOriginal || '450000';
             document.getElementById('residentialBalance').value = data.residentialBalance || '250000';
