@@ -778,7 +778,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut as firebaseSignOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+        import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
         const firebaseConfig = {
           apiKey: "AIzaSyCxUS2oEI5Un3eapWgX5pf81KmncvQilqk",
@@ -1021,7 +1021,7 @@
                             style="width: 100%; padding: 8px; border: 1px solid var(--color-border); border-radius: 6px; font-size: 14px;">
                         <div style="margin-top: 8px; font-size: 12px; color: var(--color-text-secondary);">
                             Monthly Interest<br>
-                            <span style="color: var(--color-primary); font-weight: 600;">£${formatCurrency(monthlyInterest)}</span>
+                            <span class="monthly-interest" style="color: var(--color-primary); font-weight: 600;">£${formatCurrency(monthlyInterest)}</span>
                         </div>
                     </td>
                     <td style="padding: 12px; vertical-align: top;">
@@ -1030,7 +1030,7 @@
                             style="width: 100%; padding: 8px; border: 1px solid var(--color-border); border-radius: 6px; font-size: 14px;">
                         <div style="margin-top: 8px; font-size: 12px; color: var(--color-text-secondary);">
                             Annual Interest<br>
-                            <span style="color: var(--color-primary); font-weight: 600;">£${formatCurrency(annualInterest)}</span>
+                            <span class="annual-interest" style="color: var(--color-primary); font-weight: 600;">£${formatCurrency(annualInterest)}</span>
                         </div>
                     </td>
                     <td style="padding: 12px; vertical-align: top;">
@@ -1056,7 +1056,7 @@
             });
             
             document.querySelectorAll('.account-field').forEach(input => {
-                input.addEventListener('input', function() {
+                input.addEventListener('change', function() {
                     const index = parseInt(this.dataset.index);
                     const field = this.dataset.field;
                     const value = field === 'balance' || field === 'rate' 
@@ -1064,6 +1064,21 @@
                         : this.value;
                     
                     window.savingsAccounts[index][field] = value;
+                    
+                    // Update the interest displays for this account
+                    if (field === 'balance' || field === 'rate') {
+                        const account = window.savingsAccounts[index];
+                        const monthlyInterest = calculateSavingsInterest(account.balance, account.rate);
+                        const annualInterest = monthlyInterest * 12;
+                        
+                        const row = this.closest('tr');
+                        const monthlySpan = row.querySelector('.monthly-interest');
+                        const annualSpan = row.querySelector('.annual-interest');
+                        
+                        if (monthlySpan) monthlySpan.textContent = '£' + formatCurrency(monthlyInterest);
+                        if (annualSpan) annualSpan.textContent = '£' + formatCurrency(annualInterest);
+                    }
+                    
                     window.recalculate();
                 });
             });
