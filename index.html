@@ -895,9 +895,10 @@
                     data: data,
                     updatedAt: new Date().toISOString()
                 });
+                setSyncStatus(false);
             } catch (error) {
-                console.error('Save error:', error);
-            } finally {
+                // Silently fail and continue using localStorage
+                console.warn('Firestore save failed, using localStorage only:', error.code);
                 setSyncStatus(false);
             }
         }
@@ -946,6 +947,9 @@
                 const displayName = user.displayName || user.email.split('@')[0];
                 document.getElementById('userName').textContent = displayName;
                 document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+                
+                // Wait a bit for auth token to fully propagate
+                await new Promise(resolve => setTimeout(resolve, 500));
                 
                 const data = await loadFromFirestore();
                 if (data) {
@@ -1313,7 +1317,6 @@
 
         function attachSaveListeners() {
             const inputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"]');
-            console.log('Attaching listeners to', inputs.length, 'inputs');
             inputs.forEach(input => {
                 // Skip savings account fields as they have their own listeners
                 if (input.classList.contains('account-field')) {
@@ -1326,7 +1329,6 @@
         }
         
         function handleInputChange(event) {
-            console.log('Input changed:', event.target.id || event.target.className);
             window.recalculate();
             saveData();
         }
